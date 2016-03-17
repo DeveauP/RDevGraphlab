@@ -26,7 +26,8 @@ GraphLab<-function(path = ""){
       
       
     }
-  ### Get result from roxygen2 : missing descriptions, exported or not, etc.
+  ### Get result from roxygen2 : missing/incomplete descriptions, exported or not, etc.
+  ### If from roxygen: check looks for Rd files, may not be of interest for scripts
   
 }
 
