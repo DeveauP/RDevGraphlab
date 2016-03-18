@@ -1,42 +1,51 @@
 #!/bin/R
 
-GraphLab<-function(path = ""){
-  ### List all files of directory - or package
-  
-  file.list<-list.files(path = path,pattern = "*.R")
-  tmp_env<-new.env()
-  
-  for(file in file.list){
-    source(file = paste(path,file,sep ="/"),local = tmp_env,print.eval = TRUE)
-  }
+toto <- NULL
 
-  env_items<-unlist(ls(envir = tmp_env)) ### Does it take into account data too? (example : maps in ACSNMineR package)
-  functions<-env_items[sapply(X = env_items,
-                             FUN = function(z){
-                               e<-is.function(eval(parse(text = z)))
-                             } 
-                        )
-  ]
-  
+GraphLab <- function(path = ""){  
+    
+    ## is path a package directory or a "normal" directory with R scripts ?
+    
+    ### List all files of directory - or package
+    file.list <- base::list.files(path = path,pattern = ".R$", full.names = TRUE)
+    
+    tmp_env <- new.env()
+    
+    lapply(file.list, source, local = tmp_env)
+    
+    allFunc <- eapply(tmp_env, function(x){
+        dput(x, file = file.path(tempdir(), "foo"))
+        d <- getParseData(parse(file.path(tempdir(), "foo")))
+        d <- subset(d, token == "SYMBOL_FUNCTION_CALL")
+        if (nrow(d)) d[, "pkg"] <- gsub("package:", "", unlist(lapply(d[,"text"], function(f) paste(find(f), collapse = "|"))))
+        return(d)
+        })
+    
+    aa<-PCA(r)    
+    
+    functions <- eapply(tmp_env, is.function)
+    functions <- names(functions)[unlist(functions)]  
+    
   ### Create interation matrix
-  interaction_matrix<-matrix(0,
+  interaction_matrix <- matrix(0,
                              nrow = length(functions),
-                             ncol = length(functions))
-  for(i in 1:length(functions)){
+                             ncol = length(functions),
+                             dimnames = list(functions, functions))
+  for (i in 1:length(functions)) {
     ### Is another function from  the function list called?
     ### Are you importing from another package? (then which? => devtool::check)
     ### Storing vertically : 1 in i column j row means function i calls function j
-    interaction_matrix[,i]<-sapply(X = functions, FUN = function(z){  
+    interaction_matrix[,i] <- sapply(X = functions, FUN = function(z){  
       ### body returns a vector => see if you call it more than once
       ### We want function to start with the name and finish with parenthesis => exlude function that could
       ### have partially identical names or items with same names as functions
 
-      x<-unlist(strsplit(x = as.character(body(functions[i])), split =" "))
-      a<-sum(grepl(pattern = paste("(\\(?)",z,'(\\()(.*)(\\))',sep=""),
+      x <- unlist(strsplit(x = as.character(body(functions[i])), split =" "))
+      a <- sum(grepl(pattern = paste("(\\(?)",z,'(\\()(.*)(\\))',sep=""),
                x =  x)
       )
       print(a)
-      return(as.numeric(a>0))
+      return(as.numeric(a > 0))
     })
   }
   ### Get result from roxygen2 : missing/incomplete descriptions, exported or not, etc.
@@ -44,14 +53,19 @@ GraphLab<-function(path = ""){
   
 }
 
-PlotGraphLab<-function(GraphLab){
+PlotGraphLab <- function(GraphLab){
   ### get interaction matrix and status for each function
   
   
 }
 
-DevGraphLab<-function(path){
-  Graph<-GraphLab(path = path)
+DevGraphLab <- function(path){
+  Graph <- GraphLab(path = path)
   return(PlotGraphLab(GraphLab))
   
 }
+
+showTab <- function(allFunc, funcName){
+    datatable(allFunc[[funcName]][, c("text", "pkg")], caption = funcName, rownames=FALSE)   
+}
+
