@@ -3,7 +3,7 @@
 toto <- NULL
 
 GraphLab <- function(path = ""){  
-    
+    #'gTag ongoing
     ## is path a package directory or a "normal" directory with R scripts ?
     
     ### List all files of directory - or package
@@ -20,7 +20,6 @@ GraphLab <- function(path = ""){
         if (nrow(d)) d[, "pkg"] <- gsub("package:", "", unlist(lapply(d[,"text"], function(f) paste(find(f), collapse = "|"))))
         return(d)
         })
-    
     functions <- eapply(tmp_env, is.function)
     functions <- names(functions)[unlist(functions)]  
     
@@ -35,15 +34,15 @@ GraphLab <- function(path = ""){
     interaction_matrix[,i] <- interact(allFunc = allFunc,i = i,functions = functions)
   }
   
-  
-  ### Get result from roxygen2 : missing/incomplete descriptions, exported or not, etc.
-  ### If from roxygen: check looks for Rd files, may not be of interest for scripts
+  ### Extract tags : requires other method (saving in tmp file erases comments)
+  result<-list(Functions = allFunc, interaction = interaction_matrix)
   
 }
 
 
 
-interact<-function(allFunc,functions,i = 1){w
+interact<-function(allFunc,functions,i = 1){
+  #'gTab uncommented
   z<-functions[i]
   if(length(allFunc[[z]][["text"]])){
     return(as.numeric(functions %in% allFunc[[z]][["text"]]))
@@ -56,6 +55,8 @@ interact<-function(allFunc,functions,i = 1){w
 
 PlotGraphLab <- function(GraphLab){
   ### get interaction matrix and status for each function
+  
+  
   
   
 }
