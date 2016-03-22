@@ -21,8 +21,6 @@ GraphLab <- function(path = ""){
         return(d)
         })
     
-    aa<-PCA(r)    
-    
     functions <- eapply(tmp_env, is.function)
     functions <- names(functions)[unlist(functions)]  
     
@@ -33,25 +31,28 @@ GraphLab <- function(path = ""){
                              dimnames = list(functions, functions))
   for (i in 1:length(functions)) {
     ### Is another function from  the function list called?
-    ### Are you importing from another package? (then which? => devtool::check)
     ### Storing vertically : 1 in i column j row means function i calls function j
-    interaction_matrix[,i] <- sapply(X = functions, FUN = function(z){  
-      ### body returns a vector => see if you call it more than once
-      ### We want function to start with the name and finish with parenthesis => exlude function that could
-      ### have partially identical names or items with same names as functions
-
-      x <- unlist(strsplit(x = as.character(body(functions[i])), split =" "))
-      a <- sum(grepl(pattern = paste("(\\(?)",z,'(\\()(.*)(\\))',sep=""),
-               x =  x)
-      )
-      print(a)
-      return(as.numeric(a > 0))
-    })
+    interaction_matrix[,i] <- interact(allFunc = allFunc,i = i,functions = functions)
   }
+  
+  
   ### Get result from roxygen2 : missing/incomplete descriptions, exported or not, etc.
   ### If from roxygen: check looks for Rd files, may not be of interest for scripts
   
 }
+
+
+
+interact<-function(allFunc,functions,i = 1){w
+  z<-functions[i]
+  if(length(allFunc[[z]][["text"]])){
+    return(as.numeric(functions %in% allFunc[[z]][["text"]]))
+  }
+  else{
+    return(rep(0,times = length(functions)))
+  }
+}
+
 
 PlotGraphLab <- function(GraphLab){
   ### get interaction matrix and status for each function
