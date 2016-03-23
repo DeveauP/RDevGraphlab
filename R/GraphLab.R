@@ -89,9 +89,9 @@ PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
                       ### z: time, func, calledBy, y
                       if(z[3]=="NA"){ 
                         return(data.frame(x1 = NA,
-                                          x2 = 0,
+                                          x2 = 1,
                                           y1 = NA,
-                                          y2 = 0,
+                                          y2 = 1,
                                           func = z[2]
                         ))
                       }
@@ -109,6 +109,26 @@ PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
                       }
                     })
   arrow_data<-do.call(rbind.data.frame, arrow_data)
+  arrow_data$y2<-cnum(arrow_data$y2)
+  arrow_data$x2<-cnum(arrow_data$x2)
+  
+  
+  ### unicity of points in arrow data
+  for(fun in unique(arrow_data$func)){
+    m<-which(arrow_data$func==fun)
+    if(length(m)-1){
+      print(fun)
+      arrow_data$x2[m]<-arrow_data$x2[min(m)]
+      arrow_data$y2[m]<-arrow_data$y2[min(m)]
+      
+    }
+    
+  }
+  
+  ### check that start and end are not the same and add a little noise
+  m<-which(arrow_data$x1 == arrow_data$x2 & arrow_data$y1 == arrow_data$y2)
+  arrow_data$x2[m]<-arrow_data$x2[m]+0.1
+  arrow_data$y2[m]<-arrow_data$y2[m]+0.1
   
   
   print(arrow_data)
@@ -178,3 +198,4 @@ showTab <- function(allFunc, funcName){
   datatable(allFunc[[funcName]][, c("text", "pkg")], caption = funcName, rownames=FALSE)   
 }
 
+cnum<-function(z){as.numeric(as.character(z))}
