@@ -92,7 +92,9 @@ PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
                                           x2 = 1,
                                           y1 = NA,
                                           y2 = 1,
-                                          func = z[2]
+                                          func = z[2],
+                                          curvature = 0,
+                                          text = TRUE
                         ))
                       }
                       else{
@@ -103,7 +105,9 @@ PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
                                           x2 = z[1],
                                           y1 = timeline$y[caller],
                                           y2 = z[4],
-                                          func = z[2]
+                                          func = z[2],
+                                          curvature = 0.5,
+                                          text = TRUE
                         )
                         )
                       }
@@ -127,24 +131,30 @@ PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
   
   ### check that start and end are not the same and add a little noise
   m<-which(arrow_data$x1 == arrow_data$x2 & arrow_data$y1 == arrow_data$y2)
-  arrow_data$x2[m]<-arrow_data$x2[m]+0.1
-  arrow_data$y2[m]<-arrow_data$y2[m]+0.1
+  #arrow_data$x2[m]<-arrow_data$x2[m]+0.1
+  arrow_data$y2[m]<-arrow_data$y2[m]+0.2
+  arrow_data$text[m]<-FALSE
+  arrow_data$curvature[m]<-10
   
-  
+  sub<-arrow_data$text
   print(arrow_data)
-  g<-ggplot(data = arrow_data[-1,],
+  print(arrow_data[arrow_data$curvature>0,])
+  g<-ggplot(data = arrow_data[arrow_data$curvature>0,],
             aes_string(x = "x1",
                        xend = "x2",
                        y = "y1",
-                       yend = "y2" ))+
+                       yend = "y2",
+                       curvature = "curvature"))+
     geom_curve(
       arrow = arrow(length = unit(0.03, "npc"))
     )+
     annotate(geom = "text",
-             x = arrow_data$x2,
-             y = arrow_data$y2,
-             label = arrow_data$func
-    )+theme_void()
+             x=arrow_data$x2[sub],
+             y=arrow_data$y2[sub]+0.05,
+             label = arrow_data$func[sub]
+    )+theme_void()+
+    xlim(c(0,max(arrow_data$x2)+0.5))+
+    ylim(c(-0.05,max(arrow_data$y2)+0.1))
   
   
   ### Issue with plot: if 2 segments starts from same point: one will be shifted to -1
