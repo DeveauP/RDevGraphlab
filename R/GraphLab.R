@@ -71,7 +71,7 @@ PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
                              time = 1)
   print(timeline)
   
-  y<-1
+  y<-0
   
   time<-timeline$timeline
   if(length(time)-1){
@@ -91,7 +91,7 @@ PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
                         return(data.frame(x1 = NA,
                                           x2 = 1,
                                           y1 = NA,
-                                          y2 = 1,
+                                          y2 = 0,
                                           func = z[2],
                                           curvature = 0,
                                           text = TRUE
@@ -137,8 +137,21 @@ PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
   arrow_data$curvature[m]<-10
   
   sub<-arrow_data$text
+  
+  ### Avoid skipped values of x  
+  L1<-length(na.omit(unique(arrow_data$x1)))
+  while(sum(unique(na.omit(arrow_data$x1)) %in% 1:L1)<L1){ ### take first NA into account
+    k<-min(which(!(1:L1 %in% unique(arrow_data$x1))))
+    arrow_data$x1[arrow_data$x1>k]<-arrow_data$x1[arrow_data$x1>k]-1
+    arrow_data$x2[arrow_data$x2>k]<-arrow_data$x2[arrow_data$x2>k]-1
+    
+  }
+  
+  arrow_data$x1<-arrow_data$x1+0.5
+  
+  
   print(arrow_data)
-  print(arrow_data[arrow_data$curvature>0,])
+  
   g<-ggplot(data = arrow_data[arrow_data$curvature>0,],
             aes_string(x = "x1",
                        xend = "x2",
@@ -151,13 +164,44 @@ PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
     annotate(geom = "text",
              x=arrow_data$x2[sub],
              y=arrow_data$y2[sub]+0.05,
-             label = arrow_data$func[sub]
-    )+theme_void()+
-    xlim(c(0,max(arrow_data$x2)+0.5))+
-    ylim(c(-0.05,max(arrow_data$y2)+0.1))
+             label = arrow_data$func[sub],
+             hjust = 0,
+             fontface = "bold"
+    )+theme_void()
+    #xlim(c(0.5,max(arrow_data$x2)+1))+
+    #ylim(c(-1,max(arrow_data$y2)+0.1))
   
   
-  ### Issue with plot: if 2 segments starts from same point: one will be shifted to -1
+  #### Add functions from other packages
+  AnnexCalls<-list()
+  m<-0
+  for(fun in unique(arrow_data$func)){
+    AnnexCalls[[fun]]<-unique(GraphLab$Functions[[fun]][!(GraphLab$Functions[[fun]]$pkg %in% c(filterOut,".GlobalEnv")),c("text","pkg")])
+    m<-max(m,nrow(AnnexCalls[[fun]]))
+  }
+  
+  for(fun in unique(arrow_data$func)){
+    if(nrow(AnnexCalls[[fun]])){
+      g<-g+
+        annotate(geom = "text",
+                 x = arrow_data$x2[arrow_data$func == fun & arrow_data$text],
+                 y = arrow_data$y2[arrow_data$func == fun & arrow_data$text] - (1:nrow(AnnexCalls[[fun]]))/m,
+                 label = paste(AnnexCalls[[fun]]$pkg,AnnexCalls[[fun]]$text,sep= "::"),
+                 #color = AnnexCalls[[fun]]$pkg,
+                 hjust = 0)+
+        annotate(geom = "rect",
+                 xmin = arrow_data$x2[arrow_data$func == fun & arrow_data$text],
+                 xmax = arrow_data$x2[arrow_data$func == fun & arrow_data$text]+0.9,
+                 ymin = arrow_data$y2[arrow_data$func == fun & arrow_data$text] - (nrow(AnnexCalls[[fun]])+1)/m,
+                 ymax =  arrow_data$y2[arrow_data$func == fun & arrow_data$text]+0.1,
+                 color = "lightgrey",
+                 alpha = 0.2
+                 )
+      
+    }
+  }
+  
+  
   return(g)
   
   
