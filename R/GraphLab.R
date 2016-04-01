@@ -5,10 +5,13 @@ toto <- NULL
 
 # GraphLab
 #'
-#'@param path
-#'@section gTag ongoing
+#'Statuses for the gTag can be one of complete, ongoing, undoc (umented), unknown
+#'
+#'@param path : path to the R/ folder with scripts
 
 GraphLab <- function(path = ""){  
+  #gTag GraphLab complete
+  
   ## is path a package directory or a "normal" directory with R scripts ?
   
   ### List all files of directory - or package
@@ -41,17 +44,42 @@ GraphLab <- function(path = ""){
   
   ### Extract tags : requires other method (saving in tmp file erases comments)
   ### Use roxygen and extract from Rd file? : see https://developer.r-project.org/parseRd.pdf
-  ### Option: create a gTag section with the following possibilities: complete, undocumented, ongoing
+  ### Option: create a gTag section with the following possibilities: complete, undoc, ongoing, unknown
   
-  
-  result<-list(Functions = allFunc, interaction = interaction_matrix)
+  comms<-list()
+  for(i in file.list){
+    comms<-c(comms,get_comments(i))
+  }
+  status<-data.frame(func = names(allFunc), 
+                     status = sapply(names(allFunc),FUN = function(z){
+                       comments<-comms[z]
+                       bin<-grepl(pattern = "#'gTag",x = comments,ignore.case = FALSE,fixed = TRUE)
+                       if(sum(bin)){
+                         char<-comments[bin]
+                         if(grepl(pattern = "complete",x = char,ignore.case = TRUE)){
+                           return("complete")
+                         }else if(grepl(pattern = "undoc",x = char,ignore.case = TRUE)){
+                           return("undocumented")
+                         }else if(grepl(pattern = "ongoing",x = char,ignore.case = TRUE)){
+                           return("ongoing")
+                         }
+                         else{
+                           return("unknown")
+                         }
+                       }
+                       else{
+                         return("unknown")
+                       }
+                     })
+  )
+  result<-list(Functions = allFunc, interaction = interaction_matrix,status = status)
   
 }
 
 
 
 interact<-function(allFunc,functions,i = 1){
-  #'gTab uncommented
+  #gTag interact unknown
   z<-functions[i]
   if(length(allFunc[[z]][["text"]])){
     return(as.numeric(functions %in% allFunc[[z]][["text"]]))
@@ -63,9 +91,10 @@ interact<-function(allFunc,functions,i = 1){
 
 
 PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
-  #'gTag : uncomplete
+  #'gTag : undoc
   ### get interaction matrix and status for each function
   functions<-row.names(GraphLab$interaction)
+  
   timeline<-extract_timeline(interact = GraphLab$interaction,
                              func = func,
                              time = 1)
@@ -82,6 +111,7 @@ PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
   print(y)
   
   timeline$y<-y
+  
   arrow_data<-apply(X = timeline,
                     MARGIN = 1,
                     FUN = function(z){
@@ -168,9 +198,26 @@ PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
              hjust = 0,
              fontface = "bold"
     )+theme_void()
-    #xlim(c(0.5,max(arrow_data$x2)+1))+
-    #ylim(c(-1,max(arrow_data$y2)+0.1))
+  #xlim(c(0.5,max(arrow_data$x2)+1))+
+  #ylim(c(-1,max(arrow_data$y2)+0.1))
+  ###Add color from status
   
+  arrow_data$status<-sapply(X = arrow_data$func, FUN = function(z){
+      GraphLab$status$status[as.character(GraphLab$status$func) == as.character(z)]
+    }
+  )
+  
+  arrow_data$color<-sapply(X = arrow_data$status,FUN = function(z){
+    if(z == "complete"){
+      return("green")
+    }else if(z=="ongoing"){
+      return("orange")
+    }else if(z=="undocumented"){
+      return("red")
+    }else{
+      return("lightgrey")
+    }
+  })
   
   #### Add functions from other packages
   AnnexCalls<-list()
@@ -179,7 +226,7 @@ PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
     AnnexCalls[[fun]]<-unique(GraphLab$Functions[[fun]][!(GraphLab$Functions[[fun]]$pkg %in% c(filterOut,".GlobalEnv")),c("text","pkg")])
     m<-max(m,nrow(AnnexCalls[[fun]]))
   }
-  
+  print(arrow_data)
   for(fun in unique(arrow_data$func)){
     if(nrow(AnnexCalls[[fun]])){
       g<-g+
@@ -194,10 +241,20 @@ PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
                  xmax = arrow_data$x2[arrow_data$func == fun & arrow_data$text]+0.9,
                  ymin = arrow_data$y2[arrow_data$func == fun & arrow_data$text] - (nrow(AnnexCalls[[fun]])+1)/m,
                  ymax =  arrow_data$y2[arrow_data$func == fun & arrow_data$text]+0.1,
-                 color = "lightgrey",
+                 fill =  arrow_data$color[arrow_data$func == fun][1],
                  alpha = 0.2
-                 )
+        )
       
+    }
+    else{
+      g<-g+annotate(geom = "rect",
+                    xmin = arrow_data$x2[arrow_data$func == fun & arrow_data$text],
+                    xmax = arrow_data$x2[arrow_data$func == fun & arrow_data$text]+0.9,
+                    ymin = arrow_data$y2[arrow_data$func == fun & arrow_data$text] - 1/m,
+                    ymax =  arrow_data$y2[arrow_data$func == fun & arrow_data$text]+0.1,
+                    fill =  arrow_data$color[arrow_data$func == fun][1],
+                    alpha = 0.2
+      )
     }
   }
   
@@ -208,7 +265,7 @@ PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
 }
 
 extract_timeline<-function(interact,func,time = 1 ,calledBy = "NA"){
-  #'gTag : uncomplete
+  #'gTag : ongoing
   
   #print(paste("func:",func))
   #print(paste("calledBy:", calledBy))
@@ -252,4 +309,23 @@ showTab <- function(allFunc, funcName){
   datatable(allFunc[[funcName]][, c("text", "pkg")], caption = funcName, rownames=FALSE)   
 }
 
-cnum<-function(z){as.numeric(as.character(z))}
+cnum<-function(z){
+  #'gTag complete
+  as.numeric(as.character(z))
+  }
+
+
+get_comments = function (filename) {
+  ### from http://stackoverflow.com/questions/32651414/extract-comments-from-r-source-files-keep-function-in-which-they-occurs
+  is_assign = function (expr)
+    as.character(expr) %in% c('<-', '<<-', '=', 'assign')
+  
+  is_function = function (expr)
+    is.call(expr) && is_assign(expr[[1]]) && is.call(expr[[3]]) && expr[[3]][[1]] == quote(`function`)
+  
+  source = parse(filename, keep.source = TRUE)
+  functions = Filter(is_function, source)
+  fun_names = as.character(lapply(functions, `[[`, 2))
+  setNames(lapply(attr(functions, 'srcref'), grep,
+                  pattern = '^\\s*#', value = TRUE), fun_names)
+}
