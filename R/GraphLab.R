@@ -1,13 +1,13 @@
 #!/bin/R
 
-toto <- NULL
-
+#' @import ggplot2
 
 # GraphLab
 #'
 #'Statuses for the gTag can be one of complete, ongoing, undoc (umented), unknown
 #'
-#'@param path : path to the R/ folder with scripts
+#' @param path : path to the R/ folder with scripts
+#' @export
 
 GraphLab <- function(path = ""){  
   #gTag GraphLab complete
@@ -77,7 +77,13 @@ GraphLab <- function(path = ""){
 }
 
 
-
+#' interact
+#' 
+#' Creates an interaction matrix for function
+#' A 1 is present in column i, row j if i calls j
+#' @param allFunc data generated inside of Graphlab
+#' @param functions character vector with the name of all the functions from the pseudo-package
+#' @param i position of the function to be tested inside functions
 interact<-function(allFunc,functions,i = 1){
   #gTag interact unknown
   z<-functions[i]
@@ -89,7 +95,13 @@ interact<-function(allFunc,functions,i = 1){
   }
 }
 
-
+#'PlotGraphLab
+#'
+#'Creates an interaction plot based on the output of Graphlab for a given function
+#' @param Graphlab Output of the GraphLab function for the whole folder
+#' @param func The function of interest for which the interaction graph should be plotted
+#' @param filterOut name of packages from which the functions should be ignored. By default: base & utils
+#' @export
 PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
   #'gTag : undoc
   ### get interaction matrix and status for each function
@@ -257,13 +269,17 @@ PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
       )
     }
   }
-  
-  
   return(g)
-  
-  
 }
 
+
+#' Extract calling timeline
+#' 
+#' Extract calling timeline 
+#' @param interact the interaction matrix create by interact function
+#' @param func function of interest for which the timeline should be created
+#' @param time the iterative time
+#' @param calledBy the function which calls func
 extract_timeline<-function(interact,func,time = 1 ,calledBy = "NA"){
   #'gTag : ongoing
   
@@ -298,10 +314,22 @@ extract_timeline<-function(interact,func,time = 1 ,calledBy = "NA"){
   return(result)
 }
 
+#' DevGraphLab
+#' 
+#' Plots graph of interaction for all functions in the package
+#' @param path Path to the folder with all R scripts for the package
+#' @export
 DevGraphLab <- function(path){
+  #' gTag ongoing
+  
   Graph <- GraphLab(path = path)
+  
+  ### Should find the number of independant components in the package from the graph
+  ### and return 1 plot for each component
+  
+  
   #print(Graph)
-  return(PlotGraphLab(GraphLab))
+  return(PlotGraphLab(GraphLab,func = func))
   
 }
 
@@ -309,12 +337,16 @@ showTab <- function(allFunc, funcName){
   datatable(allFunc[[funcName]][, c("text", "pkg")], caption = funcName, rownames=FALSE)   
 }
 
+#' The classic function to coerce to numeric
+#' @param z the vector to be coerced
 cnum<-function(z){
   #'gTag complete
   as.numeric(as.character(z))
   }
 
-
+#' Extract comments from functions
+#' 
+#' @param filename : filenames from which we should extract comments
 get_comments = function (filename) {
   ### from http://stackoverflow.com/questions/32651414/extract-comments-from-r-source-files-keep-function-in-which-they-occurs
   is_assign = function (expr)
