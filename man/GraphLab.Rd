@@ -2,17 +2,19 @@
 % Please edit documentation in R/GraphLab.R
 \name{GraphLab}
 \alias{GraphLab}
-\title{}
+\title{GraphLab}
 \usage{
 GraphLab(path = "")
 }
 \arguments{
-\item{path}{}
+\item{path}{: path to the R/ folder with scripts}
 }
 \description{
-
+Statuses for the gTag can be one of complete, ongoing, undoc (umented), unknown
 }
-\section{gTag ongoing}{
+\author{
+Paul Deveau <paul.deveau at curie.fr>
 
+Pierre Gestraud
 }
 

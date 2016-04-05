@@ -1,11 +1,10 @@
 #!/bin/R
+#' @author Paul Deveau <paul.deveau at curie.fr>
+#' @author Pierre Gestraud
 
-#' @import ggplot2
-
-# GraphLab
+#' @title GraphLab
 #'
-#'Statuses for the gTag can be one of complete, ongoing, undoc (umented), unknown
-#'
+#' @description Statuses for the gTag can be one of complete, ongoing, undoc (umented), unknown
 #' @param path : path to the R/ folder with scripts
 #' @export
 
@@ -102,6 +101,8 @@ interact<-function(allFunc,functions,i = 1){
 #' @param func The function of interest for which the interaction graph should be plotted
 #' @param filterOut name of packages from which the functions should be ignored. By default: base & utils
 #' @export
+#' @importFrom ggplot2 ggplot annotate geom_curve theme_void
+
 PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
   #'gTag : ongoing
   ### get interaction matrix and status for each function
@@ -388,7 +389,7 @@ DevGraphLab <- function(path,filterOut = c("base","utils") ){
   }
   
   return(eval(parse(text = paste(
-    "grid.arrange(",
+    "gridExtra::grid.arrange(",
     paste(paste("plot",1:length(Masters),sep="_"),collapse =","),
     ",","ncol = n",
     ")"
@@ -443,7 +444,7 @@ find_clusters<-function(GraphLab){
 #' 
 #'  @param GraphLab output from GraphLab function
 showImports<-function(GraphLab, onlyMissingImports = FALSE,filterOut = "base"){
-  #'gTag complete
+  #'gTag undoc
   if(onlyMissingImports){
     miss<-character()
     for(i in GraphLab$Functions){
