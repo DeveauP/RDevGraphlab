@@ -28,3 +28,4 @@ Icon
 .Rhistory
 *.Rproj*
 .RData
+.Rproj.user

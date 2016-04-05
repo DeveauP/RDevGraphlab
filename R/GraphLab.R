@@ -110,167 +110,213 @@ PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
   timeline<-extract_timeline(interact = GraphLab$interaction,
                              func = func,
                              time = 1)
-  print(timeline)
-  
-  y<-0
-  
-  time<-timeline$timeline
-  if(length(time)-1){
-    for(i in 2:length(time)){
-      y<-c(y,sum(time[i]==time[1:(i-1)]))
+  if(nrow(timeline)>1){ ### function has progeny
+    #print(timeline)
+    
+    y<-0
+    
+    time<-timeline$timeline
+    if(length(time)-1){
+      for(i in 2:length(time)){
+        y<-c(y,sum(time[i]==time[1:(i-1)]))
+      }
     }
-  }
-  print(y)
-  
-  timeline$y<-y
-  
-  arrow_data<-apply(X = timeline,
-                    MARGIN = 1,
-                    FUN = function(z){
-                      #print(names(z))
-                      ### z: time, func, calledBy, y
-                      if(z[3]=="NA"){ 
-                        return(data.frame(x1 = NA,
-                                          x2 = 1,
-                                          y1 = NA,
-                                          y2 = 0,
-                                          func = z[2],
-                                          curvature = 0,
-                                          text = TRUE
-                        ))
-                      }
-                      else{
-                        #print(paste(z[2],",",z[3]))
-                        caller<-min(which(timeline$func == z[3]))
-                        #print(caller)
-                        return(data.frame(x1 = timeline$time[caller],
-                                          x2 = z[1],
-                                          y1 = timeline$y[caller],
-                                          y2 = z[4],
-                                          func = z[2],
-                                          curvature = 0.5,
-                                          text = TRUE
-                        )
-                        )
-                      }
-                    })
-  arrow_data<-do.call(rbind.data.frame, arrow_data)
-  arrow_data$y2<-cnum(arrow_data$y2)
-  arrow_data$x2<-cnum(arrow_data$x2)
-  
-  
-  ### unicity of points in arrow data
-  for(fun in unique(arrow_data$func)){
-    m<-which(arrow_data$func==fun)
-    if(length(m)-1){
-      print(fun)
-      arrow_data$x2[m]<-arrow_data$x2[min(m)]
-      arrow_data$y2[m]<-arrow_data$y2[min(m)]
+    #print(y)
+    
+    timeline$y<-y
+    
+    arrow_data<-apply(X = timeline,
+                      MARGIN = 1,
+                      FUN = function(z){
+                        #print(names(z))
+                        ### z: time, func, calledBy, y
+                        if(z[3]=="NA"){ 
+                          return(data.frame(x1 = NA,
+                                            x2 = 1,
+                                            y1 = NA,
+                                            y2 = 0,
+                                            func = z[2],
+                                            curvature = 0,
+                                            text = TRUE
+                          ))
+                        }
+                        else{
+                          #print(paste(z[2],",",z[3]))
+                          caller<-min(which(timeline$func == z[3]))
+                          #print(caller)
+                          return(data.frame(x1 = timeline$time[caller],
+                                            x2 = z[1],
+                                            y1 = timeline$y[caller],
+                                            y2 = z[4],
+                                            func = z[2],
+                                            curvature = 0.5,
+                                            text = TRUE
+                          )
+                          )
+                        }
+                      })
+    arrow_data<-do.call(rbind.data.frame, arrow_data)
+    arrow_data$y2<-cnum(arrow_data$y2)
+    arrow_data$x2<-cnum(arrow_data$x2)
+    
+    
+    ### unicity of points in arrow data
+    for(fun in unique(arrow_data$func)){
+      m<-which(arrow_data$func==fun)
+      if(length(m)-1){
+        #print(fun)
+        arrow_data$x2[m]<-arrow_data$x2[min(m)]
+        arrow_data$y2[m]<-arrow_data$y2[min(m)]
+        
+      }
       
     }
     
-  }
-  
-  ### check that start and end are not the same and add a little noise
-  m<-which(arrow_data$x1 == arrow_data$x2 & arrow_data$y1 == arrow_data$y2)
-  #arrow_data$x2[m]<-arrow_data$x2[m]+0.1
-  arrow_data$y2[m]<-arrow_data$y2[m]+0.2
-  arrow_data$text[m]<-FALSE
-  arrow_data$curvature[m]<-10
-  
-  sub<-arrow_data$text
-  
-  ### Avoid skipped values of x  
-  L1<-length(na.omit(unique(arrow_data$x1)))
-  while(sum(unique(na.omit(arrow_data$x1)) %in% 1:L1)<L1){ ### take first NA into account
-    k<-min(which(!(1:L1 %in% unique(arrow_data$x1))))
-    arrow_data$x1[arrow_data$x1>k]<-arrow_data$x1[arrow_data$x1>k]-1
-    arrow_data$x2[arrow_data$x2>k]<-arrow_data$x2[arrow_data$x2>k]-1
+    ### check that start and end are not the same and add a little noise
+    m<-which(arrow_data$x1 == arrow_data$x2 & arrow_data$y1 == arrow_data$y2)
+    #arrow_data$x2[m]<-arrow_data$x2[m]+0.1
+    arrow_data$y2[m]<-arrow_data$y2[m]+0.2
+    arrow_data$text[m]<-FALSE
+    arrow_data$curvature[m]<-10
     
-  }
-  
-  arrow_data$x1<-arrow_data$x1+0.5
-  
-  
-  print(arrow_data)
-  
-  g<-ggplot(data = arrow_data[arrow_data$curvature>0,],
-            aes_string(x = "x1",
-                       xend = "x2",
-                       y = "y1",
-                       yend = "y2",
-                       curvature = "curvature"))+
-    geom_curve(
-      arrow = arrow(length = unit(0.03, "npc"))
-    )+
-    annotate(geom = "text",
-             x=arrow_data$x2[sub],
-             y=arrow_data$y2[sub]+0.05,
-             label = arrow_data$func[sub],
-             hjust = 0,
-             fontface = "bold"
-    )+theme_void()
-  #xlim(c(0.5,max(arrow_data$x2)+1))+
-  #ylim(c(-1,max(arrow_data$y2)+0.1))
-  ###Add color from status
-  
-  arrow_data$status<-sapply(X = arrow_data$func, FUN = function(z){
+    sub<-arrow_data$text
+    
+    ### Avoid skipped values of x  
+    L1<-length(na.omit(unique(arrow_data$x1)))
+    while(sum(unique(na.omit(arrow_data$x1)) %in% 1:L1)<L1){ ### take first NA into account
+      k<-min(which(!(1:L1 %in% unique(arrow_data$x1))))
+      arrow_data$x1[arrow_data$x1>k]<-arrow_data$x1[arrow_data$x1>k]-1
+      arrow_data$x2[arrow_data$x2>k]<-arrow_data$x2[arrow_data$x2>k]-1
+      
+    }
+    
+    arrow_data$x1<-arrow_data$x1+0.5
+    
+    
+    #print(arrow_data)
+    
+    g<-ggplot(data = arrow_data[arrow_data$curvature>0,],
+              aes_string(x = "x1",
+                         xend = "x2",
+                         y = "y1",
+                         yend = "y2",
+                         curvature = "curvature"))+
+      geom_curve(
+        arrow = arrow(length = unit(0.03, "npc"))
+      )+
+      annotate(geom = "text",
+               x=arrow_data$x2[sub],
+               y=arrow_data$y2[sub]+0.05,
+               label = arrow_data$func[sub],
+               hjust = 0,
+               fontface = "bold"
+      )+theme_void()
+    #xlim(c(0.5,max(arrow_data$x2)+1))+
+    #ylim(c(-1,max(arrow_data$y2)+0.1))
+    ###Add color from status
+    
+    arrow_data$status<-sapply(X = arrow_data$func, FUN = function(z){
       GraphLab$status$status[as.character(GraphLab$status$func) == as.character(z)]
     }
-  )
-  
-  arrow_data$color<-sapply(X = arrow_data$status,FUN = function(z){
-    if(z == "complete"){
-      return("green")
-    }else if(z=="ongoing"){
-      return("orange")
-    }else if(z=="undocumented"){
-      return("red")
-    }else{
-      return("lightgrey")
+    )
+    
+    arrow_data$color<-sapply(X = arrow_data$status,FUN = function(z){
+      if(z == "complete"){
+        return("green")
+      }else if(z=="ongoing"){
+        return("orange")
+      }else if(z=="undocumented"){
+        return("red")
+      }else{
+        return("lightgrey")
+      }
+    })
+    
+    #### Add functions from other packages
+    AnnexCalls<-list()
+    m<-0
+    for(fun in unique(arrow_data$func)){
+      AnnexCalls[[fun]]<-unique(GraphLab$Functions[[fun]][!(GraphLab$Functions[[fun]]$pkg %in% filterOut | GraphLab$Functions[[fun]]$text %in% unique(arrow_data$func)),
+                                                          c("text","pkg")])
+      m<-max(m,nrow(AnnexCalls[[fun]]))
     }
-  })
-  
-  #### Add functions from other packages
-  AnnexCalls<-list()
-  m<-0
-  for(fun in unique(arrow_data$func)){
-    AnnexCalls[[fun]]<-unique(GraphLab$Functions[[fun]][!(GraphLab$Functions[[fun]]$pkg %in% filterOut | GraphLab$Functions[[fun]]$text %in% unique(arrow_data$func)),
-                                                        c("text","pkg")])
-    m<-max(m,nrow(AnnexCalls[[fun]]))
-  }
-  print(arrow_data)
-  for(fun in unique(arrow_data$func)){
-    if(nrow(AnnexCalls[[fun]])){
-      g<-g+
-        annotate(geom = "text",
-                 x = arrow_data$x2[arrow_data$func == fun & arrow_data$text],
-                 y = arrow_data$y2[arrow_data$func == fun & arrow_data$text] - (1:nrow(AnnexCalls[[fun]]))/m,
-                 label = paste(AnnexCalls[[fun]]$pkg,AnnexCalls[[fun]]$text,sep= "::"),
-                 #color = AnnexCalls[[fun]]$pkg,
-                 hjust = 0)+
-        annotate(geom = "rect",
-                 xmin = arrow_data$x2[arrow_data$func == fun & arrow_data$text],
-                 xmax = arrow_data$x2[arrow_data$func == fun & arrow_data$text]+0.9,
-                 ymin = arrow_data$y2[arrow_data$func == fun & arrow_data$text] - (nrow(AnnexCalls[[fun]])+1)/m,
-                 ymax =  arrow_data$y2[arrow_data$func == fun & arrow_data$text]+0.1,
-                 fill =  arrow_data$color[arrow_data$func == fun][1],
-                 alpha = 0.2
+    #print(arrow_data)
+    for(fun in unique(arrow_data$func)){
+      if(nrow(AnnexCalls[[fun]])){
+        g<-g+
+          annotate(geom = "text",
+                   x = arrow_data$x2[arrow_data$func == fun & arrow_data$text],
+                   y = arrow_data$y2[arrow_data$func == fun & arrow_data$text] - (1:nrow(AnnexCalls[[fun]]))/m,
+                   label = paste(AnnexCalls[[fun]]$pkg,AnnexCalls[[fun]]$text,sep= "::"),
+                   #color = AnnexCalls[[fun]]$pkg,
+                   hjust = 0)+
+          annotate(geom = "rect",
+                   xmin = arrow_data$x2[arrow_data$func == fun & arrow_data$text],
+                   xmax = arrow_data$x2[arrow_data$func == fun & arrow_data$text]+0.9,
+                   ymin = arrow_data$y2[arrow_data$func == fun & arrow_data$text] - (nrow(AnnexCalls[[fun]])+1)/m,
+                   ymax =  arrow_data$y2[arrow_data$func == fun & arrow_data$text]+0.1,
+                   fill =  arrow_data$color[arrow_data$func == fun][1],
+                   alpha = 0.2
+          )
+        
+      }
+      else{
+        g<-g+annotate(geom = "rect",
+                      xmin = arrow_data$x2[arrow_data$func == fun & arrow_data$text],
+                      xmax = arrow_data$x2[arrow_data$func == fun & arrow_data$text]+0.9,
+                      ymin = arrow_data$y2[arrow_data$func == fun & arrow_data$text] - 1/m,
+                      ymax =  arrow_data$y2[arrow_data$func == fun & arrow_data$text]+0.1,
+                      fill =  arrow_data$color[arrow_data$func == fun][1],
+                      alpha = 0.2
         )
-      
+      }
     }
-    else{
-      g<-g+annotate(geom = "rect",
-                    xmin = arrow_data$x2[arrow_data$func == fun & arrow_data$text],
-                    xmax = arrow_data$x2[arrow_data$func == fun & arrow_data$text]+0.9,
-                    ymin = arrow_data$y2[arrow_data$func == fun & arrow_data$text] - 1/m,
-                    ymax =  arrow_data$y2[arrow_data$func == fun & arrow_data$text]+0.1,
-                    fill =  arrow_data$color[arrow_data$func == fun][1],
-                    alpha = 0.2
-      )
-    }
+    return(g)
   }
-  return(g)
+  else{### Function is alone, but still should be plotted with its dependancies
+    status<-GraphLab$status$status[as.character(GraphLab$status$func) == func]
+    color<-sapply(X = status,FUN = function(z){
+      if(z == "complete"){
+        return("green")
+      }else if(z=="ongoing"){
+        return("orange")
+      }else if(z=="undocumented"){
+        return("red")
+      }else{
+        return("lightgrey")
+      }
+    })
+    m<-0
+    AnnexCalls<-unique(GraphLab$Functions[[func]][!(GraphLab$Functions[[func]]$pkg %in% filterOut ),
+                                                        c("text","pkg")])
+    m<-nrow(AnnexCalls)
+    Y<-1/((1:m)+1)
+    g<-ggplot(x = 1, y = 1,xlim = c(1,2),
+              ylim = c(0,1))+annotate(geom = "text",
+                                     x = 1,
+                                     y = 1,
+                                     fontface = "bold",
+                                     hjust = 0,
+                                     label = func
+                                     )+
+      annotate(geom = "rect",
+               xmin = 1,
+               xmax = 1.9,
+               ymin = 0,
+               ymax = 1.1,
+               fill =  color,
+               alpha = 0.2
+               )+theme_void()
+      if(m){
+        g<-g+annotate(geom = "text",
+                    x = 1,
+                    y = 1-Y,
+                    hjust = 0,
+                    label = paste(AnnexCalls$pkg,AnnexCalls$text,sep ="::")
+        )
+      }
+   return(g) 
+  }
 }
 
 
@@ -319,8 +365,9 @@ extract_timeline<-function(interact,func,time = 1 ,calledBy = "NA"){
 #' 
 #' Plots graph of interaction for all functions in the package
 #' @param path Path to the folder with all R scripts for the package
+#' @importFrom gridExtra grid.arrange
 #' @export
-DevGraphLab <- function(path){
+DevGraphLab <- function(path,filterOut = c("base","utils") ){
   #' gTag ongoing
   
   Graph <- GraphLab(path = path)
@@ -328,9 +375,24 @@ DevGraphLab <- function(path){
   ### Should find the number of independant components in the package from the graph
   ### and return 1 plot for each component
   
+  Masters<-find_clusters(Graph)
+  #print(Masters)
+  n<-floor(sqrt(length(Masters)))+1
   
-  #print(Graph)
-  return(PlotGraphLab(GraphLab,func = func))
+  for(i in 1:length(Masters)){
+    print(Masters[i])
+    assign(paste("plot",i,sep="_"),PlotGraphLab(GraphLab = Graph,
+                                                func = Masters[i],
+                                                filterOut =  filterOut)
+    )
+  }
+  
+  return(eval(parse(text = paste(
+    "grid.arrange(",
+    paste(paste("plot",1:length(Masters),sep="_"),collapse =","),
+    ",","ncol = n",
+    ")"
+  ))))
   
 }
 
@@ -343,7 +405,7 @@ showTab <- function(allFunc, funcName){
 cnum<-function(z){
   #'gTag complete
   as.numeric(as.character(z))
-  }
+}
 
 #' Extract comments from functions
 #' 
@@ -363,9 +425,43 @@ get_comments = function (filename) {
                   pattern = '^\\s*#', value = TRUE), fun_names)
 }
 
+
+#' Finds clusters of interactions
+#' 
+#' @param GraphLab output from GraphLab function
+#' 
 find_clusters<-function(GraphLab){
+  #gTag complete
   ### Get all functions that are called by no-one
-  Starts<-row.names(GraphLab)
-  
+  Starts<-row.names(GraphLab$interaction[rowSums(GraphLab$interaction)==0,])
+  return(Starts)
+}
+
+
+#' Shows all imported functions
+#' 
+#'  @param GraphLab output from GraphLab function
+showImports<-function(GraphLab, onlyMissingImports = FALSE,filterOut = "base"){
+  #gTag ongoing
+  if(onlyMissingImports){
+    miss<-character()
+    for(i in GraphLab$Functions){
+      miss<-c(miss,i[ i$pkg=="", "text"])
+    }
+    return(miss)
+  }
+  else{
+    
+    df<-data.frame()
+    for(i in GraphLab$Functions){
+
+      if(nrow(i)){ ### skip if function has no row (pkg column missing)
+      df<-rbind(df,i[!(i$pkg %in% filterOut) ,c("text","pkg")])
+      }
+    }
+    df<-unique(df)
+    df<-df[order(df$pkg,df$text,decreasing = FALSE),]
+    return(df)
+  }
   
 }
