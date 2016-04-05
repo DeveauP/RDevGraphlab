@@ -235,7 +235,8 @@ PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
   AnnexCalls<-list()
   m<-0
   for(fun in unique(arrow_data$func)){
-    AnnexCalls[[fun]]<-unique(GraphLab$Functions[[fun]][!(GraphLab$Functions[[fun]]$pkg %in% c(filterOut,".GlobalEnv")),c("text","pkg")])
+    AnnexCalls[[fun]]<-unique(GraphLab$Functions[[fun]][!(GraphLab$Functions[[fun]]$pkg %in% filterOut | GraphLab$Functions[[fun]]$text %in% unique(arrow_data$func)),
+                                                        c("text","pkg")])
     m<-max(m,nrow(AnnexCalls[[fun]]))
   }
   print(arrow_data)
@@ -360,4 +361,11 @@ get_comments = function (filename) {
   fun_names = as.character(lapply(functions, `[[`, 2))
   setNames(lapply(attr(functions, 'srcref'), grep,
                   pattern = '^\\s*#', value = TRUE), fun_names)
+}
+
+find_clusters<-function(GraphLab){
+  ### Get all functions that are called by no-one
+  Starts<-row.names(GraphLab)
+  
+  
 }
