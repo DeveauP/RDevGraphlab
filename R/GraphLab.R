@@ -10,7 +10,7 @@
 #' @export
 
 GraphLab <- function(path = ""){  
-  #gTag GraphLab complete
+  #'gTag complete
   
   ## is path a package directory or a "normal" directory with R scripts ?
   
@@ -85,7 +85,7 @@ GraphLab <- function(path = ""){
 #' @param functions character vector with the name of all the functions from the pseudo-package
 #' @param i position of the function to be tested inside functions
 interact<-function(allFunc,functions,i = 1){
-  #gTag interact unknown
+  #'gTag complete
   z<-functions[i]
   if(length(allFunc[[z]][["text"]])){
     return(as.numeric(functions %in% allFunc[[z]][["text"]]))
@@ -103,7 +103,7 @@ interact<-function(allFunc,functions,i = 1){
 #' @param filterOut name of packages from which the functions should be ignored. By default: base & utils
 #' @export
 PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
-  #'gTag : undoc
+  #'gTag : ongoing
   ### get interaction matrix and status for each function
   functions<-row.names(GraphLab$interaction)
   
@@ -328,7 +328,7 @@ PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
 #' @param time the iterative time
 #' @param calledBy the function which calls func
 extract_timeline<-function(interact,func,time = 1 ,calledBy = "NA"){
-  #'gTag : ongoing
+  #'gTag : complete
   
   #print(paste("func:",func))
   #print(paste("calledBy:", calledBy))
@@ -368,7 +368,7 @@ extract_timeline<-function(interact,func,time = 1 ,calledBy = "NA"){
 #' @importFrom gridExtra grid.arrange
 #' @export
 DevGraphLab <- function(path,filterOut = c("base","utils") ){
-  #' gTag ongoing
+  #'gTag undoc
   
   Graph <- GraphLab(path = path)
   
@@ -411,6 +411,7 @@ cnum<-function(z){
 #' 
 #' @param filename : filenames from which we should extract comments
 get_comments = function (filename) {
+  #'gTag undoc
   ### from http://stackoverflow.com/questions/32651414/extract-comments-from-r-source-files-keep-function-in-which-they-occurs
   is_assign = function (expr)
     as.character(expr) %in% c('<-', '<<-', '=', 'assign')
@@ -431,7 +432,7 @@ get_comments = function (filename) {
 #' @param GraphLab output from GraphLab function
 #' 
 find_clusters<-function(GraphLab){
-  #gTag complete
+  #'gTag complete
   ### Get all functions that are called by no-one
   Starts<-row.names(GraphLab$interaction[rowSums(GraphLab$interaction)==0,])
   return(Starts)
@@ -442,7 +443,7 @@ find_clusters<-function(GraphLab){
 #' 
 #'  @param GraphLab output from GraphLab function
 showImports<-function(GraphLab, onlyMissingImports = FALSE,filterOut = "base"){
-  #gTag ongoing
+  #'gTag complete
   if(onlyMissingImports){
     miss<-character()
     for(i in GraphLab$Functions){
