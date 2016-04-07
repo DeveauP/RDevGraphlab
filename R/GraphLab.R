@@ -24,7 +24,12 @@ GraphLab <- function(path = ""){
     dput(x, file = file.path(tempdir(), "foo"))
     d <- getParseData(parse(file.path(tempdir(), "foo")))
     d <- subset(d, token == "SYMBOL_FUNCTION_CALL")
-    if (nrow(d)) d[, "pkg"] <- gsub("package:", "", unlist(lapply(d[,"text"], function(f) paste(find(f), collapse = "|"))))
+    if (nrow(d)) d[, "pkg"] <- unlist(lapply(d[,"text"], function(f){
+        found <- getAnywhere(f)$where
+        found <- gsub("package:", "", found)
+        found <- gsub("namespace:", "", found)
+        found <- paste(unique(found), collapse="|")
+    }))
     return(d)
   })
   functions <- eapply(tmp_env, is.function)
