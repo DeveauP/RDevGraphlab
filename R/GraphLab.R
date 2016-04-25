@@ -249,14 +249,7 @@ PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
       m<-max(m,nrow(AnnexCalls[[fun]]))
     }
     for(fun in unique(arrow_data$func)){
-      print(fun)
       if(nrow(AnnexCalls[[fun]])){
-        print("x:")
-        print(arrow_data$x2[arrow_data$func == fun & arrow_data$text])
-        print("y:")
-        print(arrow_data$y2[arrow_data$func == fun & arrow_data$text])
-        print("z:")
-        print((1:nrow(AnnexCalls[[fun]]))/m)
         g<-g+
           ggplot2::annotate(geom = "text",
                    x = arrow_data$x2[arrow_data$func == fun & arrow_data$text] + 0*(1:nrow(AnnexCalls[[fun]])), ## trick to have same length vectors
@@ -304,13 +297,9 @@ PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
     AnnexCalls<-unique(GraphLab$Functions[[func]][!(GraphLab$Functions[[func]]$pkg %in% filterOut ),
                                                         c("text","pkg")])
     m<-nrow(AnnexCalls)
-<<<<<<< HEAD
-    Y<-1/((1:m)+1)
-    g<-ggplot2::ggplot(x = 1, y = 1,xlim = c(1,2),
-=======
+
     Y<-(1:m)/(m+1)
     g<-ggplot(x = 1, y = 1,xlim = c(1,2),
->>>>>>> origin/master
               ylim = c(0,1))+annotate(geom = "text",
                                      x = 1,
                                      y = 1,
