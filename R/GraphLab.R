@@ -80,7 +80,7 @@ GraphLab <- function(path = ""){
 #' 
 #' Creates an interaction matrix for function
 #' A 1 is present in column i, row j if i calls j
-#' @param allFunc data generated inside of Graphlab
+#' @param allFunc data generated inside of GraphLab
 #' @param functions character vector with the name of all the functions from the pseudo-package
 #' @param i position of the function to be tested inside functions
 interact<-function(allFunc,functions,i = 1){
@@ -96,8 +96,8 @@ interact<-function(allFunc,functions,i = 1){
 
 #'PlotGraphLab
 #'
-#'Creates an interaction plot based on the output of Graphlab for a given function
-#' @param Graphlab Output of the GraphLab function for the whole folder
+#'Creates an interaction plot based on the output of GraphLab for a given function
+#' @param GraphLab Output of the GraphLab function for the whole folder
 #' @param func The function of interest for which the interaction graph should be plotted
 #' @param filterOut name of packages from which the functions should be ignored. By default: base & utils
 #' @export
@@ -196,22 +196,22 @@ PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
     
     #print(arrow_data)
     
-    g<-ggplot(data = arrow_data[arrow_data$curvature>0,],
-              aes_string(x = "x1",
+    g<-ggplot2::ggplot(data = arrow_data[arrow_data$curvature>0,],
+              ggplot2::aes_string(x = "x1",
                          xend = "x2",
                          y = "y1",
                          yend = "y2",
                          curvature = "curvature"))+
-      geom_curve(
-        arrow = arrow(length = unit(0.03, "npc"))
+      ggplot2::geom_curve(
+        arrow = ggplot2::arrow(length = ggplot2::unit(0.03, "npc"))
       )+
-      annotate(geom = "text",
+      ggplot2::annotate(geom = "text",
                x=arrow_data$x2[sub],
                y=arrow_data$y2[sub]+0.05,
                label = arrow_data$func[sub],
                hjust = 0,
                fontface = "bold"
-      )+theme_void()
+      )+ggplot2::theme_void()
     #xlim(c(0.5,max(arrow_data$x2)+1))+
     #ylim(c(-1,max(arrow_data$y2)+0.1))
     ###Add color from status
@@ -241,17 +241,23 @@ PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
                                                           c("text","pkg")])
       m<-max(m,nrow(AnnexCalls[[fun]]))
     }
-    #print(arrow_data)
     for(fun in unique(arrow_data$func)){
+      print(fun)
       if(nrow(AnnexCalls[[fun]])){
+        print("x:")
+        print(arrow_data$x2[arrow_data$func == fun & arrow_data$text])
+        print("y:")
+        print(arrow_data$y2[arrow_data$func == fun & arrow_data$text])
+        print("z:")
+        print((1:nrow(AnnexCalls[[fun]]))/m)
         g<-g+
-          annotate(geom = "text",
-                   x = arrow_data$x2[arrow_data$func == fun & arrow_data$text],
+          ggplot2::annotate(geom = "text",
+                   x = arrow_data$x2[arrow_data$func == fun & arrow_data$text] + 0*(1:nrow(AnnexCalls[[fun]])), ## trick to have same length vectors
                    y = arrow_data$y2[arrow_data$func == fun & arrow_data$text] - (1:nrow(AnnexCalls[[fun]]))/m,
                    label = paste(AnnexCalls[[fun]]$pkg,AnnexCalls[[fun]]$text,sep= "::"),
                    #color = AnnexCalls[[fun]]$pkg,
                    hjust = 0)+
-          annotate(geom = "rect",
+          ggplot2::annotate(geom = "rect",
                    xmin = arrow_data$x2[arrow_data$func == fun & arrow_data$text],
                    xmax = arrow_data$x2[arrow_data$func == fun & arrow_data$text]+0.9,
                    ymin = arrow_data$y2[arrow_data$func == fun & arrow_data$text] - (nrow(AnnexCalls[[fun]])+1)/m,
@@ -262,7 +268,7 @@ PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
         
       }
       else{
-        g<-g+annotate(geom = "rect",
+        g<-g+ggplot2::annotate(geom = "rect",
                       xmin = arrow_data$x2[arrow_data$func == fun & arrow_data$text],
                       xmax = arrow_data$x2[arrow_data$func == fun & arrow_data$text]+0.9,
                       ymin = arrow_data$y2[arrow_data$func == fun & arrow_data$text] - 1/m,
@@ -292,7 +298,7 @@ PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
                                                         c("text","pkg")])
     m<-nrow(AnnexCalls)
     Y<-1/((1:m)+1)
-    g<-ggplot(x = 1, y = 1,xlim = c(1,2),
+    g<-ggplot2::ggplot(x = 1, y = 1,xlim = c(1,2),
               ylim = c(0,1))+annotate(geom = "text",
                                      x = 1,
                                      y = 1,
@@ -397,10 +403,6 @@ DevGraphLab <- function(path,filterOut = c("base","utils") ){
   
 }
 
-showTab <- function(allFunc, funcName){
-  datatable(allFunc[[funcName]][, c("text", "pkg")], caption = funcName, rownames=FALSE)   
-}
-
 #' The classic function to coerce to numeric
 #' @param z the vector to be coerced
 cnum<-function(z){
@@ -443,6 +445,8 @@ find_clusters<-function(GraphLab){
 #' Shows all imported functions
 #' 
 #'  @param GraphLab output from GraphLab function
+#'  @param onlyMissingImports show function that are not taken into account in the imports
+#'  @param filterOut packages from which functions should not be shown
 showImports<-function(GraphLab, onlyMissingImports = FALSE,filterOut = "base"){
   #'gTag undoc
   if(onlyMissingImports){
