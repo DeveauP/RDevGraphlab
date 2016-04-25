@@ -18,19 +18,26 @@ GraphLab <- function(path = ""){
   
   tmp_env <- new.env()
   
-  lapply(file.list, source, local = tmp_env)
+  lapply(file.list, sys.source, envir = tmp_env, keep.source = TRUE)
   
   allFunc <- eapply(tmp_env, function(x){
-    dput(x, file = file.path(tempdir(), "foo"))
-    d <- getParseData(parse(file.path(tempdir(), "foo")))
-    d <- subset(d, token == "SYMBOL_FUNCTION_CALL")
-    if (nrow(d)) d[, "pkg"] <- gsub("package:", "", unlist(lapply(d[,"text"], function(f) paste(find(f), collapse = "|"))))
+     # if (is.function(x)){
+          dput(x, file = file.path(tempdir(), "foo"))
+          d <- getParseData(parse(file.path(tempdir(), "foo")))
+          d <- subset(d, token == "SYMBOL_FUNCTION_CALL")
+          if (nrow(d)) d[, "pkg"] <- unlist(lapply(d[,"text"], function(f){
+              found <- getAnywhere(f)$where
+              found <- gsub("package:", "", found)
+              found <- gsub("namespace:", "", found)
+              found <- paste(unique(found), collapse = "|")
+    }))
+      #} else d <- NULL
     return(d)
   })
   functions <- eapply(tmp_env, is.function)
   functions <- names(functions)[unlist(functions)]  
   
-  ### Create interation matrix
+    ### Create interation matrix
   interaction_matrix <- matrix(0,
                                nrow = length(functions),
                                ncol = length(functions),
@@ -297,8 +304,13 @@ PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
     AnnexCalls<-unique(GraphLab$Functions[[func]][!(GraphLab$Functions[[func]]$pkg %in% filterOut ),
                                                         c("text","pkg")])
     m<-nrow(AnnexCalls)
+<<<<<<< HEAD
     Y<-1/((1:m)+1)
     g<-ggplot2::ggplot(x = 1, y = 1,xlim = c(1,2),
+=======
+    Y<-(1:m)/(m+1)
+    g<-ggplot(x = 1, y = 1,xlim = c(1,2),
+>>>>>>> origin/master
               ylim = c(0,1))+annotate(geom = "text",
                                      x = 1,
                                      y = 1,
