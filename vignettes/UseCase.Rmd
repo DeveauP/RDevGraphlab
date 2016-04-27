@@ -9,8 +9,71 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(DevGRaph)
 ```
 
-## User vignette
+#User case
 
-This vignette describes possibilities for the package RGraphLab
+This vignette describes possibilities for the package DevGRaph with the toy example given in the package.
+
+## Setting up the files for analysis
+This package was developped to ease package development. For this reason, it will source R script files from a unique folder.
+In this vignette the files are located in `inst/extdata`.
+```{r path_setup}
+ path<-system.file("extdata", package = "DevGRaph")
+```
+
+In addition, user can provide information on the state of a function with the gTag.
+A gTag is a tag that can be added to the function corpus as a comment with following syntax:
+`#'gTag status`
+The status of the function will then be represented by a color in the different graphs.
+
+The following statuses are currently available:
+
+````{r status,echo = FALSE}
+knitr::kable(data.frame(Status = c("unkown (default)","complete","undocumented","ongoing"),Color = c("grey","green","red","orange")))
+
+
+````
+
+
+##Viewing all functions from package
+
+`DevGraphLab` is a function designed to show all interactions between functions of the graph. Each panel represents an independant cluster of functions. This is a wrap-up function that calls `GraphLab` to analyze the scripts, looks for independant clusters and plots each one of them with `PlotGraphLab`. 
+
+```{r dev}
+DevGraphLab(path = path)
+
+```
+
+##Zooming on a specific function
+
+First we need to analyze the collection of scripts with `GraphLab`.
+
+```{r Graph}
+Graph<-GraphLab(path = path)
+
+```
+
+The graph object is a list of three elements: `Functions` (a list of data frames), `interaction`, and `status`.
+`interaction` is a binary matrix with a 1 if the function from the column calls the function from the row. Below we show the last two columns of the interaction matrix of the toy example.
+
+```{r interaction_show, echo = FALSE}
+knitr::kable(Graph$interaction[,c("Start","progeny")])
+```
+
+We can see that `Start` calls all function but `calls_ggplot2_function`, `recursive`, and `Start` itself.
+
+
+If we wanted to plot the interaction of `Start` with its successive progenies, we would write:
+
+```{r PlotGraph_1}
+PlotGraphLab(GraphLab = Graph,func = "Start")
+
+```
+
+
+
+
+
+##Comparison to `devtools::check`

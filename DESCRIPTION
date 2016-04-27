@@ -1,9 +1,11 @@
-Package: RDevGraphlab
-Title: What the Package Does (one line, title case)
-Version: 0.0.0.9000
-Authors@R: person("First", "Last", email = "first.last@example.com", role = c("aut", "cre"))
+Package: DevGRaph
+Title: Interaction of Functions for Package Construction
+Version: 0.9.0.0000
+Authors@R: c(person("Paul", "Deveau", email = "paul.deveau@curie.fr", role = c("aut", "cre")),
+			person("Pierre", "Gestraud", email = "pierre.gestraud@curie.fr", role ="aut")
+			)
 Description: What the package does (one paragraph).
-Depends: R (>= 3.2.2),ggplot2, gridExtra
+Depends: R (>= 3.2.0),ggplot2, gridExtra
 Suggests: knitr, rmarkdown,
 License: GPL-2
 LazyData: true

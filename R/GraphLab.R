@@ -8,7 +8,7 @@
 #' @return \code{GraphLab} returns a list of with following elements: Functions (list of functions called by this function), interaction
 #' (interaction matrix), and status (string with value corresponding to the gTag inside function corpus)
 #' @param path : path to the R/ folder with scripts
-#' @examples path<-system.file("extdata", package = "RDevGraphlab")
+#' @examples path<-system.file("extdata", package = "DevGRaph")
 #' G<-GraphLab(path)
 #' print(G$interaction)
 #' print(G$status)
@@ -115,7 +115,7 @@ interact<-function(allFunc,functions,i = 1){
 #' @param filterOut name of packages from which the functions should be ignored. By default: base & utils
 #' @export
 #' @examples 
-#' G<-GraphLab(system.file("extdata", "", package = "RDevGraphlab"))
+#' G<-GraphLab(system.file("extdata", "", package = "DevGRaph"))
 #' # Same as DevGraphLab in this example:
 #' PlotGraphLab(GraphLab = G, func = "Start")
 #' # Graph for \code{progeny} function only
@@ -390,7 +390,7 @@ extract_timeline<-function(interact,func,time = 1 ,calledBy = "NA"){
 #' @importFrom gridExtra grid.arrange
 #' @return \code{DevGraphLab} returns a \code{ggplot2} graph if there is only one cluster of functions or a \code{gridExtra} object otherwise.
 #' @examples 
-#' path<-system.file("extdata", package = "RDevGraphlab")
+#' path<-system.file("extdata", package = "DevGRaph")
 #' DevGraphLab(path)
 #' @export
 DevGraphLab <- function(path,filterOut = c("base","utils") ){
