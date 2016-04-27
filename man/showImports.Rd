@@ -8,6 +8,10 @@ showImports(GraphLab, onlyMissingImports = FALSE, filterOut = "base")
 }
 \arguments{
 \item{GraphLab}{output from GraphLab function}
+
+\item{onlyMissingImports}{show function that are not taken into account in the imports}
+
+\item{filterOut}{packages from which functions should not be shown}
 }
 \description{
 Shows all imported functions

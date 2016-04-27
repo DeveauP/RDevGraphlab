@@ -1,0 +1,16 @@
+---
+title: "UseCase"
+author: "Paul Deveau"
+output: 
+  html_document: 
+    highlight: tango
+    theme: cosmo
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## User vignette
+
+This vignette describes possibilities for the package RGraphLab

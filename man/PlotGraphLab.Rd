@@ -7,13 +7,22 @@
 PlotGraphLab(GraphLab, func, filterOut = c("base", "utils"))
 }
 \arguments{
+\item{GraphLab}{Output of the GraphLab function for the whole folder}
+
 \item{func}{The function of interest for which the interaction graph should be plotted}
 
 \item{filterOut}{name of packages from which the functions should be ignored. By default: base & utils}
-
-\item{Graphlab}{Output of the GraphLab function for the whole folder}
 }
 \description{
-Creates an interaction plot based on the output of Graphlab for a given function
+Creates an interaction plot based on the output of GraphLab for a given function
+}
+\examples{
+G<-GraphLab(system.file("extdata", "", package = "RDevGraphLab"))
+# Same as DevGraphLab in this example:
+PlotGraphLab(GraphLab = G, func = "Start")
+# Graph for \\code{progeny} function only
+PlotGraphLab(GraphLab = G,func = "progeny")
+# Ignoring ggplot2 imports:
+PlotGraphLab(GraphLab = G,func = "Start", filterOut = "ggplot2")
 }
 

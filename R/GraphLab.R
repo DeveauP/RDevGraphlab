@@ -5,7 +5,13 @@
 #' @title GraphLab
 #'
 #' @description Statuses for the gTag can be one of complete, ongoing, undoc (umented), unknown
+#' @return \code{GraphLab} returns a list of with following elements: Functions (list of functions called by this function), interaction
+#' (interaction matrix), and status (string with value corresponding to the gTag inside function corpus)
 #' @param path : path to the R/ folder with scripts
+#' @examples path<-system.file("extdata", package = "RDevGraphlab")
+#' G<-GraphLab(path)
+#' print(G$interaction)
+#' print(G$status)
 #' @export
 
 GraphLab <- function(path = ""){  
@@ -108,6 +114,14 @@ interact<-function(allFunc,functions,i = 1){
 #' @param func The function of interest for which the interaction graph should be plotted
 #' @param filterOut name of packages from which the functions should be ignored. By default: base & utils
 #' @export
+#' @examples 
+#' G<-GraphLab(system.file("extdata", "", package = "RDevGraphLab"))
+#' # Same as DevGraphLab in this example:
+#' PlotGraphLab(GraphLab = G, func = "Start")
+#' # Graph for \code{progeny} function only
+#' PlotGraphLab(GraphLab = G,func = "progeny")
+#' # Ignoring ggplot2 imports:
+#' PlotGraphLab(GraphLab = G,func = "Start", filterOut = "ggplot2")
 #' @importFrom ggplot2 ggplot annotate geom_curve theme_void
 
 PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
@@ -373,7 +387,11 @@ extract_timeline<-function(interact,func,time = 1 ,calledBy = "NA"){
 #' 
 #' Plots graph of interaction for all functions in the package
 #' @param path Path to the folder with all R scripts for the package
+#' @param  filterOut character vector of the packages to ignore in the graph
 #' @importFrom gridExtra grid.arrange
+#' @return \code{DevGraphLab} returns a \code{ggplot2} graph if there is only one cluster of functions or a \code{gridExtra} object otherwise.
+#' path<-system.file("extdata", "", package = "RDevGraphLab")
+#' DevGraphLab(path)
 #' @export
 DevGraphLab <- function(path,filterOut = c("base","utils") ){
   #'gTag undoc
@@ -384,24 +402,23 @@ DevGraphLab <- function(path,filterOut = c("base","utils") ){
   ### and return 1 plot for each component
   
   Masters<-find_clusters(Graph)
-  #print(Masters)
-  n<-floor(sqrt(length(Masters)))+1
-  
-  for(i in 1:length(Masters)){
-    print(Masters[i])
-    assign(paste("plot",i,sep="_"),PlotGraphLab(GraphLab = Graph,
-                                                func = Masters[i],
-                                                filterOut =  filterOut)
-    )
+  if(length(Masters)==1){
+    return(PlotGraphLab(GraphLab = Graph,
+                        func = Masters,
+                        filterOut =  filterOut))
   }
-  
-  return(eval(parse(text = paste(
-    "gridExtra::grid.arrange(",
-    paste(paste("plot",1:length(Masters),sep="_"),collapse =","),
-    ",","ncol = n",
-    ")"
-  ))))
-  
+  else{
+    n<-floor(sqrt(length(Masters)))+1
+    
+    plots<-list()
+    for(i in 1:length(Masters)){
+      plots[[i]]<-PlotGraphLab(GraphLab = Graph,
+                               func = Masters[i],
+                               filterOut =  filterOut)
+    }
+    
+    return(gridExtra::grid.arrange(grobs = plots,ncol = n))
+  }
 }
 
 #' The classic function to coerce to numeric
@@ -438,8 +455,7 @@ get_comments = function (filename) {
 find_clusters<-function(GraphLab){
   #'gTag complete
   ### Get all functions that are called by no-one
-  Starts<-row.names(GraphLab$interaction[rowSums(GraphLab$interaction)==0,])
-  return(Starts)
+  return(row.names(GraphLab$interaction)[rowSums(GraphLab$interaction)==0])
 }
 
 

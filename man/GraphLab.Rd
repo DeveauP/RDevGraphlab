@@ -9,8 +9,18 @@ GraphLab(path = "")
 \arguments{
 \item{path}{: path to the R/ folder with scripts}
 }
+\value{
+\code{GraphLab} returns a list of with following elements: Functions (list of functions called by this function), interaction
+(interaction matrix), and status (string with value corresponding to the gTag inside function corpus)
+}
 \description{
 Statuses for the gTag can be one of complete, ongoing, undoc (umented), unknown
+}
+\examples{
+path<-system.file("extdata", package = "RDevGraphlab")
+G<-GraphLab(path)
+print(G$interaction)
+print(G$status)
 }
 \author{
 Paul Deveau <paul.deveau at curie.fr>

@@ -7,7 +7,7 @@
 interact(allFunc, functions, i = 1)
 }
 \arguments{
-\item{allFunc}{data generated inside of Graphlab}
+\item{allFunc}{data generated inside of GraphLab}
 
 \item{functions}{character vector with the name of all the functions from the pseudo-package}
 

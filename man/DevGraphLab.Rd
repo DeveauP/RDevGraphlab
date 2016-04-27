@@ -8,6 +8,13 @@ DevGraphLab(path, filterOut = c("base", "utils"))
 }
 \arguments{
 \item{path}{Path to the folder with all R scripts for the package}
+
+\item{filterOut}{character vector of the packages to ignore in the graph}
+}
+\value{
+\code{DevGraphLab} returns a \code{ggplot2} graph if there is only one cluster of functions or a \code{gridExtra} object otherwise.
+path<-system.file("extdata", "", package = "RDevGraphLab")
+DevGraphLab(path)
 }
 \description{
 Plots graph of interaction for all functions in the package
