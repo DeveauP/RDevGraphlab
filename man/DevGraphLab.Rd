@@ -13,10 +13,12 @@ DevGraphLab(path, filterOut = c("base", "utils"))
 }
 \value{
 \code{DevGraphLab} returns a \code{ggplot2} graph if there is only one cluster of functions or a \code{gridExtra} object otherwise.
-path<-system.file("extdata", "", package = "RDevGraphLab")
-DevGraphLab(path)
 }
 \description{
 Plots graph of interaction for all functions in the package
+}
+\examples{
+path<-system.file("extdata", package = "RDevGraphlab")
+DevGraphLab(path)
 }
 

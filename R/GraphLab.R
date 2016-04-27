@@ -30,8 +30,8 @@ GraphLab <- function(path = ""){
      # if (is.function(x)){
           dput(x, file = file.path(tempdir(), "foo"))
           d <- getParseData(parse(file.path(tempdir(), "foo")))
-          d <- subset(d, token == "SYMBOL_FUNCTION_CALL")
-          if (nrow(d)) d[, "pkg"] <- unlist(lapply(d[,"text"], function(f){
+          d <-d[d[,"token"] == "SYMBOL_FUNCTION_CALL",]
+          if (!is.null(nrow(d))) d[, "pkg"] <- unlist(lapply(d[,"text"], function(f){
               found <- getAnywhere(f)$where
               found <- gsub("package:", "", found)
               found <- gsub("namespace:", "", found)
@@ -115,7 +115,7 @@ interact<-function(allFunc,functions,i = 1){
 #' @param filterOut name of packages from which the functions should be ignored. By default: base & utils
 #' @export
 #' @examples 
-#' G<-GraphLab(system.file("extdata", "", package = "RDevGraphLab"))
+#' G<-GraphLab(system.file("extdata", "", package = "RDevGraphlab"))
 #' # Same as DevGraphLab in this example:
 #' PlotGraphLab(GraphLab = G, func = "Start")
 #' # Graph for \code{progeny} function only
@@ -307,12 +307,10 @@ PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
         return("lightgrey")
       }
     })
-    m<-0
     AnnexCalls<-unique(GraphLab$Functions[[func]][!(GraphLab$Functions[[func]]$pkg %in% filterOut ),
                                                         c("text","pkg")])
     m<-nrow(AnnexCalls)
 
-    Y<-(1:m)/(m+1)
     g<-ggplot(x = 1, y = 1,xlim = c(1,2),
               ylim = c(0,1))+annotate(geom = "text",
                                      x = 1,
@@ -329,7 +327,8 @@ PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
                fill =  color,
                alpha = 0.2
                )+theme_void()
-      if(m){
+      if(!is.null(m)){
+        Y<-(1:m)/(m+1)
         g<-g+annotate(geom = "text",
                     x = 1,
                     y = 1-Y,
@@ -390,7 +389,8 @@ extract_timeline<-function(interact,func,time = 1 ,calledBy = "NA"){
 #' @param  filterOut character vector of the packages to ignore in the graph
 #' @importFrom gridExtra grid.arrange
 #' @return \code{DevGraphLab} returns a \code{ggplot2} graph if there is only one cluster of functions or a \code{gridExtra} object otherwise.
-#' path<-system.file("extdata", "", package = "RDevGraphLab")
+#' @examples 
+#' path<-system.file("extdata", package = "RDevGraphlab")
 #' DevGraphLab(path)
 #' @export
 DevGraphLab <- function(path,filterOut = c("base","utils") ){
