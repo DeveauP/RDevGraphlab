@@ -41,3 +41,9 @@ calls_ggplot2_function<-function(){
   ggplot2::qplot(x = 1:10,y=1:10)
   
 }
+
+Outsider<-function(){
+  stats::as.formula(1+1)
+  rbind(1:5,2:6)
+  
+}

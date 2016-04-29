@@ -28,8 +28,9 @@ GraphLab <- function(path = ""){
   
   allFunc <- eapply(tmp_env, function(x){
      # if (is.function(x)){
-          dput(x, file = file.path(tempdir(), "foo"))
-          d <- getParseData(parse(file.path(tempdir(), "foo")))
+          #dput(x, file = file.path(tempdir(), "foo"))
+          #d <- getParseData(parse(file.path(tempdir(), "foo")))
+          d<-getParseData(x = parse(text = deparse(x), keep.source = TRUE))
           d <-d[d[,"token"] == "SYMBOL_FUNCTION_CALL",]
           if (!is.null(nrow(d))) d[, "pkg"] <- unlist(lapply(d[,"text"], function(f){
               found <- getAnywhere(f)$where
@@ -226,7 +227,7 @@ PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
       ggplot2::geom_curve(
         arrow = ggplot2::arrow(length = ggplot2::unit(0.03, "npc"))
       )+
-      ggplot2::annotate(geom = "text",
+      ggplot2::annotate(geom = "text", ### Function title
                x=arrow_data$x2[sub],
                y=arrow_data$y2[sub]+0.05,
                label = arrow_data$func[sub],
@@ -262,7 +263,9 @@ PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
                                                           c("text","pkg")])
       m<-max(m,nrow(AnnexCalls[[fun]]))
     }
+    m<-m+1
     for(fun in unique(arrow_data$func)){
+
       if(nrow(AnnexCalls[[fun]])){
         g<-g+
           ggplot2::annotate(geom = "text",
@@ -274,9 +277,10 @@ PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
           ggplot2::annotate(geom = "rect",
                    xmin = arrow_data$x2[arrow_data$func == fun & arrow_data$text],
                    xmax = arrow_data$x2[arrow_data$func == fun & arrow_data$text]+0.9,
-                   ymin = arrow_data$y2[arrow_data$func == fun & arrow_data$text] - (nrow(AnnexCalls[[fun]])+1)/m,
+                   ymin = arrow_data$y2[arrow_data$func == fun & arrow_data$text] - 0.9,
                    ymax =  arrow_data$y2[arrow_data$func == fun & arrow_data$text]+0.1,
                    fill =  arrow_data$color[arrow_data$func == fun][1],
+                   color = "black",
                    alpha = 0.2
           )
         
@@ -285,9 +289,10 @@ PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
         g<-g+ggplot2::annotate(geom = "rect",
                       xmin = arrow_data$x2[arrow_data$func == fun & arrow_data$text],
                       xmax = arrow_data$x2[arrow_data$func == fun & arrow_data$text]+0.9,
-                      ymin = arrow_data$y2[arrow_data$func == fun & arrow_data$text] - 1/m,
+                      ymin = arrow_data$y2[arrow_data$func == fun & arrow_data$text] - 0.9,
                       ymax =  arrow_data$y2[arrow_data$func == fun & arrow_data$text]+0.1,
                       fill =  arrow_data$color[arrow_data$func == fun][1],
+                      color = I("black"),
                       alpha = 0.2
         )
       }
@@ -431,7 +436,7 @@ cnum<-function(z){
 #' Extract comments from functions
 #' 
 #' @param filename : filenames from which we should extract comments
-get_comments = function (filename) {
+get_comments <- function (filename) {
   #'gTag undoc
   ### from http://stackoverflow.com/questions/32651414/extract-comments-from-r-source-files-keep-function-in-which-they-occurs
   is_assign = function (expr)
@@ -443,10 +448,10 @@ get_comments = function (filename) {
   source = parse(filename, keep.source = TRUE)
   functions = Filter(is_function, source)
   fun_names = as.character(lapply(functions, `[[`, 2))
-  setNames(lapply(attr(functions, 'srcref'), grep,
+  return(setNames(lapply(attr(functions, 'srcref'), grep,
                   pattern = '^\\s*#', value = TRUE), fun_names)
+  )
 }
-
 
 #' Finds clusters of interactions
 #' 

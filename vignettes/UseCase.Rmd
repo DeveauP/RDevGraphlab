@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(DevGRaph)
 ```
 
-#User case
+#Getting started with DevGRaph
 
 This vignette describes possibilities for the package DevGRaph with the toy example given in the package.
 
@@ -21,6 +21,7 @@ This package was developped to ease package development. For this reason, it wil
 In this vignette the files are located in `inst/extdata`.
 ```{r path_setup}
  path<-system.file("extdata", package = "DevGRaph")
+
 ```
 
 In addition, user can provide information on the state of a function with the gTag.
@@ -31,6 +32,7 @@ The status of the function will then be represented by a color in the different 
 The following statuses are currently available:
 
 ````{r status,echo = FALSE}
+
 knitr::kable(data.frame(Status = c("unkown (default)","complete","undocumented","ongoing"),Color = c("grey","green","red","orange")))
 
 
@@ -42,9 +44,12 @@ knitr::kable(data.frame(Status = c("unkown (default)","complete","undocumented",
 `DevGraphLab` is a function designed to show all interactions between functions of the graph. Each panel represents an independant cluster of functions. This is a wrap-up function that calls `GraphLab` to analyze the scripts, looks for independant clusters and plots each one of them with `PlotGraphLab`. 
 
 ```{r dev}
+
 DevGraphLab(path = path)
 
 ```
+
+We can here see that two interaction clusters coexist: one containing a single function `Outsider` and one starting with `Start`.
 
 ##Zooming on a specific function
 
@@ -52,13 +57,12 @@ First we need to analyze the collection of scripts with `GraphLab`.
 
 ```{r Graph}
 Graph<-GraphLab(path = path)
-
 ```
 
 The graph object is a list of three elements: `Functions` (a list of data frames), `interaction`, and `status`.
 `interaction` is a binary matrix with a 1 if the function from the column calls the function from the row. Below we show the last two columns of the interaction matrix of the toy example.
 
-```{r interaction_show, echo = FALSE}
+```{r interaction_show, echo = TRUE}
 knitr::kable(Graph$interaction[,c("Start","progeny")])
 ```
 
@@ -72,8 +76,27 @@ PlotGraphLab(GraphLab = Graph,func = "Start")
 
 ```
 
+We can also chose to filter out the packages from which imports are listed. By default, "base" and "utils" packages are hidden from the plots. To show them, we can use:
+```{r PlotGraph_2}
+PlotGraphLab(GraphLab = Graph,func = "Start",filterOut = "")
 
+```
 
+And to hide another package, for example ggplot2:
+```{r PlotGraph_3}
+PlotGraphLab(GraphLab = Graph,func = "Start",filterOut = c("base","utils","ggplot2"))
 
+```
 
-##Comparison to `devtools::check`
+##Show conflicting function names from two packages
+
+We show conflicts of function names for packages that are loaded in the environment.
+Let's focus on `Outsider` and its calls:
+
+```{r PlotGraph_4}
+PlotGraphLab(GraphLab = Graph,func = "Outsider",filterOut = "")
+
+```
+
+We can see here that `rbind` that was previously masked as being part of `base` package is now shown and belongs to two packages: `methods` and `base`.
+
