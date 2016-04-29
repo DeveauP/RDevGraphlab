@@ -17,7 +17,7 @@ GraphLab(path = "")
 Statuses for the gTag can be one of complete, ongoing, undoc (umented), unknown
 }
 \examples{
-path<-system.file("extdata", package = "RDevGraphlab")
+path<-system.file("extdata", package = "DevGRaph")
 G<-GraphLab(path)
 print(G$interaction)
 print(G$status)

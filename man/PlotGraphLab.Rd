@@ -17,7 +17,7 @@ PlotGraphLab(GraphLab, func, filterOut = c("base", "utils"))
 Creates an interaction plot based on the output of GraphLab for a given function
 }
 \examples{
-G<-GraphLab(system.file("extdata", "", package = "RDevGraphlab"))
+G<-GraphLab(system.file("extdata", "", package = "DevGRaph"))
 # Same as DevGraphLab in this example:
 PlotGraphLab(GraphLab = G, func = "Start")
 # Graph for \\code{progeny} function only

@@ -18,7 +18,7 @@ DevGraphLab(path, filterOut = c("base", "utils"))
 Plots graph of interaction for all functions in the package
 }
 \examples{
-path<-system.file("extdata", package = "RDevGraphlab")
+path<-system.file("extdata", package = "DevGRaph")
 DevGraphLab(path)
 }
 

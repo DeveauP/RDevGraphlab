@@ -315,7 +315,6 @@ PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
     AnnexCalls<-unique(GraphLab$Functions[[func]][!(GraphLab$Functions[[func]]$pkg %in% filterOut ),
                                                         c("text","pkg")])
     m<-nrow(AnnexCalls)
-
     g<-ggplot(x = 1, y = 1,xlim = c(1,2),
               ylim = c(0,1))+annotate(geom = "text",
                                      x = 1,
@@ -332,7 +331,7 @@ PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
                fill =  color,
                alpha = 0.2
                )+theme_void()
-      if(!is.null(m)){
+      if(!is.null(m) && m>0){
         Y<-(1:m)/(m+1)
         g<-g+annotate(geom = "text",
                     x = 1,
