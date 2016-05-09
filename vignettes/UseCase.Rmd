@@ -100,3 +100,48 @@ PlotGraphLab(GraphLab = Graph,func = "Outsider",filterOut = "")
 
 We can see here that `rbind` that was previously masked as being part of `base` package is now shown and belongs to two packages: `methods` and `base`.
 
+##Changing parameters
+###Changing the dictionnary
+
+For convenience, the tags can be changed with a dictionnary, either because the project requires different tags, or simply to change the colors of the plot.
+For example to edit the colors of the default dictionnary
+
+```{r DictEx}
+PlotGraphLab(GraphLab = Graph,func = "Start",dictionnary = c(complete = "seagreen", ongoing="gold", undocumented = "purple"))
+
+```
+
+As shown here, the `unknown` parameter is not required for the dictionnary, but one can use it nonetheless to change the color used to display function with unknown tags (either missing or unrecognized).
+
+```{r UnknownTag}
+PlotGraphLab(GraphLab = Graph,func = "Start",dictionnary = c(complete = "seagreen",ongoing ="gold", undocumented = "purple", unknown = "skyblue"))
+
+```
+
+###Changing box color
+The color of the outer box can be modified with the `color` parameter, as shown below
+
+```{r color}
+PlotGraphLab(GraphLab = Graph,func = "Start",color = "white")
+
+```
+
+###Changing arrow curvature
+
+Sometimes, for readability, it can be useful to straighten arrows, this can be setting `arrow_curv` to zero:
+```{r arrow_curv}
+PlotGraphLab(GraphLab = Graph,func = "Start",arrow_curv = 0)
+
+```
+
+By default, the curvature is set to -0.2.
+
+###Passing plot arguments to `DevGraphLab`
+
+All these arguments can be passed to `DevGraphLab` to edit the plot in the same manner as one would do with `PlotGraphLab`.
+
+```{r dev_edited}
+
+DevGraphLab(path = path,dictionnary = c(complete = "seagreen",ongoing ="gold", undocumented = "purple", unknown = "skyblue"),arrow_curv = 0 , color = "grey40")
+
+```

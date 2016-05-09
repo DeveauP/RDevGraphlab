@@ -116,6 +116,8 @@ interact<-function(allFunc,functions,i = 1){
 #' @param filterOut name of packages from which the functions should be ignored. By default: base & utils
 #' @param arrow_curv Curvature used for arrows showing non recursive calls (default: -0.2)
 #' @param color Color of the outer box (default: black)
+#' @param dictionnary A list with names the tags to use, and value the corresponding color. 
+#' "unknown" is used for all tags that are not recognised and will be in light grey by default.
 #' @export
 #' @examples 
 #' G<-GraphLab(system.file("extdata", "", package = "DevGRaph"))
@@ -287,7 +289,7 @@ PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils"),
         g<-g+
           ggplot2::annotate(geom = "text",
                             x = arrow_data$x2[arrow_data$func == fun & arrow_data$text] + 0*(1:nrow(AnnexCalls[[fun]])), ## trick to have same length vectors
-                            y = arrow_data$y2[arrow_data$func == fun & arrow_data$text] - (1:nrow(AnnexCalls[[fun]]))/m,
+                            y = arrow_data$y2[arrow_data$func == fun & arrow_data$text] - 0.9*(1:nrow(AnnexCalls[[fun]]))/m,
                             label = paste(AnnexCalls[[fun]]$pkg,AnnexCalls[[fun]]$text,sep= "::"),
                             #color = AnnexCalls[[fun]]$pkg,
                             hjust = 0)+
