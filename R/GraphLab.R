@@ -27,24 +27,24 @@ GraphLab <- function(path = ""){
   lapply(file.list, sys.source, envir = tmp_env, keep.source = TRUE)
   
   allFunc <- eapply(tmp_env, function(x){
-     # if (is.function(x)){
-          #dput(x, file = file.path(tempdir(), "foo"))
-          #d <- getParseData(parse(file.path(tempdir(), "foo")))
-          d<-getParseData(x = parse(text = deparse(x), keep.source = TRUE))
-          d <-d[d[,"token"] == "SYMBOL_FUNCTION_CALL",]
-          if (!is.null(nrow(d))) d[, "pkg"] <- unlist(lapply(d[,"text"], function(f){
-              found <- getAnywhere(f)$where
-              found <- gsub("package:", "", found)
-              found <- gsub("namespace:", "", found)
-              found <- paste(unique(found), collapse = "|")
+    # if (is.function(x)){
+    #dput(x, file = file.path(tempdir(), "foo"))
+    #d <- getParseData(parse(file.path(tempdir(), "foo")))
+    d<-getParseData(x = parse(text = deparse(x), keep.source = TRUE))
+    d <-d[d[,"token"] == "SYMBOL_FUNCTION_CALL",]
+    if (!is.null(nrow(d))) d[, "pkg"] <- unlist(lapply(d[,"text"], function(f){
+      found <- getAnywhere(f)$where
+      found <- gsub("package:", "", found)
+      found <- gsub("namespace:", "", found)
+      found <- paste(unique(found), collapse = "|")
     }))
-      #} else d <- NULL
+    #} else d <- NULL
     return(d)
   })
   functions <- eapply(tmp_env, is.function)
   functions <- names(functions)[unlist(functions)]  
   
-    ### Create interation matrix
+  ### Create interation matrix
   interaction_matrix <- matrix(0,
                                nrow = length(functions),
                                ncol = length(functions),
@@ -114,6 +114,8 @@ interact<-function(allFunc,functions,i = 1){
 #' @param GraphLab Output of the GraphLab function for the whole folder
 #' @param func The function of interest for which the interaction graph should be plotted
 #' @param filterOut name of packages from which the functions should be ignored. By default: base & utils
+#' @param arrow_curv Curvature used for arrows showing non recursive calls (default: -0.2)
+#' @param color Color of the outer box (default: black)
 #' @export
 #' @examples 
 #' G<-GraphLab(system.file("extdata", "", package = "DevGRaph"))
@@ -125,14 +127,20 @@ interact<-function(allFunc,functions,i = 1){
 #' PlotGraphLab(GraphLab = G,func = "Start", filterOut = "ggplot2")
 #' @importFrom ggplot2 ggplot annotate geom_curve theme_void
 
-PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
+PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils"),
+                         arrow_curv = -0.2,color = "black",dictionnary = "default"){
   #'gTag : ongoing
   ### get interaction matrix and status for each function
+  if(length(dictionnary)==1 && dictionnary=="default"){
+    dictionnary<-c(complete = "green",ongoing = "orange",undocumented = "red",unknown = "lightgrey")
+  }
   functions<-row.names(GraphLab$interaction)
   
   timeline<-extract_timeline(interact = GraphLab$interaction,
                              func = func,
                              time = 1)
+  
+  
   if(nrow(timeline)>1){ ### function has progeny
     #print(timeline)
     
@@ -159,7 +167,7 @@ PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
                                             y1 = NA,
                                             y2 = 0,
                                             func = z[2],
-                                            curvature = 0,
+                                            #curvature = 0,
                                             text = TRUE
                           ))
                         }
@@ -172,7 +180,7 @@ PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
                                             y1 = timeline$y[caller],
                                             y2 = z[4],
                                             func = z[2],
-                                            curvature = 0.5,
+                                            #curvature = arrow_curv,
                                             text = TRUE
                           )
                           )
@@ -196,11 +204,12 @@ PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
     }
     
     ### check that start and end are not the same and add a little noise
-    m<-which(arrow_data$x1 == arrow_data$x2 & arrow_data$y1 == arrow_data$y2)
+    circular_test<-arrow_data$x1 == arrow_data$x2 & arrow_data$y1 == arrow_data$y2
+    m<-which(circular_test)
     #arrow_data$x2[m]<-arrow_data$x2[m]+0.1
     arrow_data$y2[m]<-arrow_data$y2[m]+0.2
     arrow_data$text[m]<-FALSE
-    arrow_data$curvature[m]<-10
+    #arrow_data$curvature[m]<-10
     
     sub<-arrow_data$text
     
@@ -213,27 +222,35 @@ PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
       
     }
     
-    arrow_data$x1<-arrow_data$x1+0.5
+    arrow_data$x1<-arrow_data$x1+0.9
+    arrow_data$x2[m]<-arrow_data$x2[m]+0.8
     
+    arrow_data$y1<-arrow_data$y1-0.5
     
     #print(arrow_data)
     
-    g<-ggplot2::ggplot(data = arrow_data[arrow_data$curvature>0,],
-              ggplot2::aes_string(x = "x1",
-                         xend = "x2",
-                         y = "y1",
-                         yend = "y2",
-                         curvature = "curvature"))+
-      ggplot2::geom_curve(
-        arrow = ggplot2::arrow(length = ggplot2::unit(0.03, "npc"))
+    g<-ggplot2::ggplot(data = arrow_data[which(!circular_test),],
+                       ggplot2::aes_string(x = "x1",
+                                           xend = "x2",
+                                           y = "y1",
+                                           yend = "y2"
+                       ))+
+      ggplot2::geom_curve(curvature = I(arrow_curv),
+                          arrow = ggplot2::arrow(length = ggplot2::unit(0.03, "npc"))
       )+
       ggplot2::annotate(geom = "text", ### Function title
-               x=arrow_data$x2[sub],
-               y=arrow_data$y2[sub]+0.05,
-               label = arrow_data$func[sub],
-               hjust = 0,
-               fontface = "bold"
+                        x=arrow_data$x2[sub],
+                        y=arrow_data$y2[sub]+0.05,
+                        label = arrow_data$func[sub],
+                        hjust = 0,
+                        fontface = "bold"
       )+ggplot2::theme_void()
+    if(sum(circular_test,na.rm = TRUE)){
+      g<-g+ggplot2::geom_curve(data =arrow_data[m,],
+                               curvature = I(1),
+                               arrow = ggplot2::arrow(length = ggplot2::unit(0.03, "npc"))
+      )
+    }
     #xlim(c(0.5,max(arrow_data$x2)+1))+
     #ylim(c(-1,max(arrow_data$y2)+0.1))
     ###Add color from status
@@ -243,18 +260,18 @@ PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
     }
     )
     
-    arrow_data$color<-sapply(X = arrow_data$status,FUN = function(z){
-      if(z == "complete"){
-        return("green")
-      }else if(z=="ongoing"){
-        return("orange")
-      }else if(z=="undocumented"){
-        return("red")
-      }else{
-        return("lightgrey")
-      }
-    })
-    
+    arrow_data$color<-dict(x = arrow_data$status,pattern = names(dictionnary),replace = as.character(dictionnary))
+    # arrow_data$color<-sapply(X = arrow_data$status,FUN = function(z){
+    #   if(z == "complete"){
+    #     return("green")
+    #   }else if(z=="ongoing"){
+    #     return("orange")
+    #   }else if(z=="undocumented"){
+    #     return("red")
+    #   }else{
+    #     return("lightgrey")
+    #   }
+    # })
     #### Add functions from other packages
     AnnexCalls<-list()
     m<-0
@@ -265,35 +282,35 @@ PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
     }
     m<-m+1
     for(fun in unique(arrow_data$func)){
-
+      
       if(nrow(AnnexCalls[[fun]])){
         g<-g+
           ggplot2::annotate(geom = "text",
-                   x = arrow_data$x2[arrow_data$func == fun & arrow_data$text] + 0*(1:nrow(AnnexCalls[[fun]])), ## trick to have same length vectors
-                   y = arrow_data$y2[arrow_data$func == fun & arrow_data$text] - (1:nrow(AnnexCalls[[fun]]))/m,
-                   label = paste(AnnexCalls[[fun]]$pkg,AnnexCalls[[fun]]$text,sep= "::"),
-                   #color = AnnexCalls[[fun]]$pkg,
-                   hjust = 0)+
+                            x = arrow_data$x2[arrow_data$func == fun & arrow_data$text] + 0*(1:nrow(AnnexCalls[[fun]])), ## trick to have same length vectors
+                            y = arrow_data$y2[arrow_data$func == fun & arrow_data$text] - (1:nrow(AnnexCalls[[fun]]))/m,
+                            label = paste(AnnexCalls[[fun]]$pkg,AnnexCalls[[fun]]$text,sep= "::"),
+                            #color = AnnexCalls[[fun]]$pkg,
+                            hjust = 0)+
           ggplot2::annotate(geom = "rect",
-                   xmin = arrow_data$x2[arrow_data$func == fun & arrow_data$text],
-                   xmax = arrow_data$x2[arrow_data$func == fun & arrow_data$text]+0.9,
-                   ymin = arrow_data$y2[arrow_data$func == fun & arrow_data$text] - 0.9,
-                   ymax =  arrow_data$y2[arrow_data$func == fun & arrow_data$text]+0.1,
-                   fill =  arrow_data$color[arrow_data$func == fun][1],
-                   color = "black",
-                   alpha = 0.2
+                            xmin = arrow_data$x2[arrow_data$func == fun & arrow_data$text],
+                            xmax = arrow_data$x2[arrow_data$func == fun & arrow_data$text]+0.9,
+                            ymin = arrow_data$y2[arrow_data$func == fun & arrow_data$text] - 0.9,
+                            ymax =  arrow_data$y2[arrow_data$func == fun & arrow_data$text]+0.1,
+                            fill =  arrow_data$color[arrow_data$func == fun][1],
+                            color = I(color),
+                            alpha = 0.2
           )
         
       }
       else{
         g<-g+ggplot2::annotate(geom = "rect",
-                      xmin = arrow_data$x2[arrow_data$func == fun & arrow_data$text],
-                      xmax = arrow_data$x2[arrow_data$func == fun & arrow_data$text]+0.9,
-                      ymin = arrow_data$y2[arrow_data$func == fun & arrow_data$text] - 0.9,
-                      ymax =  arrow_data$y2[arrow_data$func == fun & arrow_data$text]+0.1,
-                      fill =  arrow_data$color[arrow_data$func == fun][1],
-                      color = I("black"),
-                      alpha = 0.2
+                               xmin = arrow_data$x2[arrow_data$func == fun & arrow_data$text],
+                               xmax = arrow_data$x2[arrow_data$func == fun & arrow_data$text]+0.9,
+                               ymin = arrow_data$y2[arrow_data$func == fun & arrow_data$text] - 0.9,
+                               ymax =  arrow_data$y2[arrow_data$func == fun & arrow_data$text]+0.1,
+                               fill =  arrow_data$color[arrow_data$func == fun][1],
+                               color = I(color),
+                               alpha = 0.2
         )
       }
     }
@@ -301,46 +318,48 @@ PlotGraphLab <- function(GraphLab,func,filterOut = c("base","utils")){
   }
   else{### Function is alone, but still should be plotted with its dependancies
     status<-GraphLab$status$status[as.character(GraphLab$status$func) == func]
-    color<-sapply(X = status,FUN = function(z){
-      if(z == "complete"){
-        return("green")
-      }else if(z=="ongoing"){
-        return("orange")
-      }else if(z=="undocumented"){
-        return("red")
-      }else{
-        return("lightgrey")
-      }
-    })
+    # fill_color<-sapply(X = status,FUN = function(z){
+    #   if(z == "complete"){
+    #     return("green")
+    #   }else if(z=="ongoing"){
+    #     return("orange")
+    #   }else if(z=="undocumented"){
+    #     return("red")
+    #   }else{
+    #     return("lightgrey")
+    #   }
+    # })
+    fill_color<-dict(x = status,pattern = names(dictionnary),replace = as.character(dictionnary))
     AnnexCalls<-unique(GraphLab$Functions[[func]][!(GraphLab$Functions[[func]]$pkg %in% filterOut ),
-                                                        c("text","pkg")])
+                                                  c("text","pkg")])
     m<-nrow(AnnexCalls)
     g<-ggplot(x = 1, y = 1,xlim = c(1,2),
               ylim = c(0,1))+annotate(geom = "text",
-                                     x = 1,
-                                     y = 1,
-                                     fontface = "bold",
-                                     hjust = 0,
-                                     label = func
-                                     )+
+                                      x = 1,
+                                      y = 1,
+                                      fontface = "bold",
+                                      hjust = 0,
+                                      label = func
+              )+
       annotate(geom = "rect",
                xmin = 1,
                xmax = 1.9,
                ymin = 0,
                ymax = 1.1,
-               fill =  color,
+               fill =  fill_color,
+               color = I(color),
                alpha = 0.2
-               )+theme_void()
-      if(!is.null(m) && m>0){
-        Y<-(1:m)/(m+1)
-        g<-g+annotate(geom = "text",
+      )+theme_void()
+    if(!is.null(m) && m>0){
+      Y<-(1:m)/(m+1)
+      g<-g+annotate(geom = "text",
                     x = 1,
                     y = 1-Y,
                     hjust = 0,
                     label = paste(AnnexCalls$pkg,AnnexCalls$text,sep ="::")
-        )
-      }
-   return(g) 
+      )
+    }
+    return(g) 
   }
 }
 
@@ -397,11 +416,9 @@ extract_timeline<-function(interact,func,time = 1 ,calledBy = "NA"){
 #' path<-system.file("extdata", package = "DevGRaph")
 #' DevGraphLab(path)
 #' @export
-DevGraphLab <- function(path,filterOut = c("base","utils") ){
+DevGraphLab <- function(path,filterOut = c("base","utils"),...){
   #'gTag undoc
-  
   Graph <- GraphLab(path = path)
-  
   ### Should find the number of independant components in the package from the graph
   ### and return 1 plot for each component
   
@@ -409,7 +426,8 @@ DevGraphLab <- function(path,filterOut = c("base","utils") ){
   if(length(Masters)==1){
     return(PlotGraphLab(GraphLab = Graph,
                         func = Masters,
-                        filterOut =  filterOut))
+                        filterOut =  filterOut,
+                        ...))
   }
   else{
     n<-floor(sqrt(length(Masters)))+1
@@ -418,7 +436,7 @@ DevGraphLab <- function(path,filterOut = c("base","utils") ){
     for(i in 1:length(Masters)){
       plots[[i]]<-PlotGraphLab(GraphLab = Graph,
                                func = Masters[i],
-                               filterOut =  filterOut)
+                               filterOut =  filterOut,...)
     }
     
     return(gridExtra::grid.arrange(grobs = plots,ncol = n))
@@ -448,7 +466,7 @@ get_comments <- function (filename) {
   functions = Filter(is_function, source)
   fun_names = as.character(lapply(functions, `[[`, 2))
   return(setNames(lapply(attr(functions, 'srcref'), grep,
-                  pattern = '^\\s*#', value = TRUE), fun_names)
+                         pattern = '^\\s*#', value = TRUE), fun_names)
   )
 }
 
@@ -481,9 +499,9 @@ showImports<-function(GraphLab, onlyMissingImports = FALSE,filterOut = "base"){
     
     df<-data.frame()
     for(i in GraphLab$Functions){
-
+      
       if(nrow(i)){ ### skip if function has no row (pkg column missing)
-      df<-rbind(df,i[!(i$pkg %in% filterOut) ,c("text","pkg")])
+        df<-rbind(df,i[!(i$pkg %in% filterOut) ,c("text","pkg")])
       }
     }
     df<-unique(df)
@@ -491,4 +509,34 @@ showImports<-function(GraphLab, onlyMissingImports = FALSE,filterOut = "base"){
     return(df)
   }
   
+}
+
+#' Function to match comments and colors
+dict <- function(x, pattern, replace) {
+  x<-as.character(x)
+  if(sum(pattern=="unknown")){
+    w<-which(pattern=="unknown")
+    pattern<-c(pattern[-w],"unknown")
+    replace<-c(replace[-w],replace[w])
+    x0<-x %in% pattern[-length(pattern)]
+    if(sum(!x0)){
+      x[!x0]<-tail(replace,1)
+    }
+    for(i in 1:(length(replace)-1)){
+      sub<-x==pattern[i]
+      if(sum(sub)){
+        x[sub]<-replace[i]
+      }
+    }
+  }
+  else{
+    x0<-x %in% pattern
+    if(sum(!x0)){
+      x[!x0]<-"lightgrey"
+    }
+    for(i in 1:(length(replace))){
+      x[x==pattern[i]]<-replace[i]
+    }
+  }
+  return(x)
 }
