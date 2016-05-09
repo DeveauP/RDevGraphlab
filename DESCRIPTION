@@ -1,10 +1,12 @@
 Package: DevGRaph
-Title: Interaction of Functions for Package Construction
+Title: Interaction of Functions for Package Development
 Version: 0.9.0.0000
 Authors@R: c(person("Paul", "Deveau", email = "paul.deveau at curie.fr", role = c("aut", "cre")),
 			person("Pierre", "Gestraud", email = "pierre.gestraud at curie.fr", role ="aut")
 			)
-Description: What the package does (one paragraph).
+Description: This package analyses calls from functions in R scripts from a specified folder to return interaction graphs. 
+	It also lists from packages loaded inside the environment, which are the functions that are used, to facilitate import listing and possible conflicts.
+	This package also tracks development status for development purposes, with tags that are written as comments by the user inside the function corpus.
 Depends: R (>= 3.2.0),ggplot2, gridExtra
 Suggests: knitr, rmarkdown,
 License: GPL-2
