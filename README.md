@@ -1,6 +1,6 @@
-# RDevGraphlab
+# DevGRaph
 
-RDevGraphLab is a project to simply visualize the development of a package.
+DevGRaph is a project to allow easy visualization of package development.
 It shows interactions between functions and statuses of functions.
 
 ## Interaction
@@ -11,7 +11,7 @@ This should come in handy when keeping track of the imported function, see depen
 ## Status
 The status is extracted from the comments of the functions, thus is user-defined.
 It should allow to check milestones in the development of a package, with statuses being:
- - unknow
+ - unknown
  - ongoing
  - undocumented
  - complete
