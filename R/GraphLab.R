@@ -12,6 +12,7 @@
 #' G<-GraphLab(path)
 #' print(G$interaction)
 #' print(G$status)
+#' @importFrom utils getAnywhere getParseData
 #' @export
 
 GraphLab <- function(path = ""){  
@@ -412,6 +413,7 @@ extract_timeline<-function(interact,func,time = 1 ,calledBy = "NA"){
 #' Plots graph of interaction for all functions in the package
 #' @param path Path to the folder with all R scripts for the package
 #' @param  filterOut character vector of the packages to ignore in the graph
+#' @param ... parameters passed to PlotGraphLab, such as dictionnary or arrow_curv.
 #' @importFrom gridExtra grid.arrange
 #' @return \code{DevGraphLab} returns a \code{ggplot2} graph if there is only one cluster of functions or a \code{gridExtra} object otherwise.
 #' @examples 
@@ -514,6 +516,10 @@ showImports<-function(GraphLab, onlyMissingImports = FALSE,filterOut = "base"){
 }
 
 #' Function to match comments and colors
+#' 
+#' @param x The comments to change
+#' @param pattern the value to change
+#' @param replace the value which should be replaced
 dict <- function(x, pattern, replace) {
   x<-as.character(x)
   if(sum(pattern=="unknown")){

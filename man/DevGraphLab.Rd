@@ -4,12 +4,14 @@
 \alias{DevGraphLab}
 \title{DevGraphLab}
 \usage{
-DevGraphLab(path, filterOut = c("base", "utils"))
+DevGraphLab(path, filterOut = c("base", "utils"), ...)
 }
 \arguments{
 \item{path}{Path to the folder with all R scripts for the package}
 
 \item{filterOut}{character vector of the packages to ignore in the graph}
+
+\item{...}{parameters passed to PlotGraphLab, such as dictionnary or arrow_curv.}
 }
 \value{
 \code{DevGraphLab} returns a \code{ggplot2} graph if there is only one cluster of functions or a \code{gridExtra} object otherwise.

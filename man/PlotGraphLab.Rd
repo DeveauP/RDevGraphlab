@@ -4,7 +4,8 @@
 \alias{PlotGraphLab}
 \title{PlotGraphLab}
 \usage{
-PlotGraphLab(GraphLab, func, filterOut = c("base", "utils"))
+PlotGraphLab(GraphLab, func, filterOut = c("base", "utils"),
+  arrow_curv = -0.2, color = "black", dictionnary = "default")
 }
 \arguments{
 \item{GraphLab}{Output of the GraphLab function for the whole folder}
@@ -12,6 +13,13 @@ PlotGraphLab(GraphLab, func, filterOut = c("base", "utils"))
 \item{func}{The function of interest for which the interaction graph should be plotted}
 
 \item{filterOut}{name of packages from which the functions should be ignored. By default: base & utils}
+
+\item{arrow_curv}{Curvature used for arrows showing non recursive calls (default: -0.2)}
+
+\item{color}{Color of the outer box (default: black)}
+
+\item{dictionnary}{A list with names the tags to use, and value the corresponding color.
+"unknown" is used for all tags that are not recognised and will be in light grey by default.}
 }
 \description{
 Creates an interaction plot based on the output of GraphLab for a given function
