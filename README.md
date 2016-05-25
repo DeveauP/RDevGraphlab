@@ -1,5 +1,6 @@
 ####Build Status:
-[![Build Status](https://travis-ci.org/DeveauP/RDevGraphLab.svg?branch=master)](https://travis-ci.org/DeveauP/RDevGraphLab)
+[![Build Status](https://travis-ci.org/DeveauP/RDevGraphlab.svg?branch=master)](https://travis-ci.org/DeveauP/RDevGraphlab)
+
 # DevGRaph
 
 DevGRaph is a project to allow easy visualization of package development.
